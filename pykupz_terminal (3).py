@@ -122,14 +122,71 @@ code{background:var(--s3)!important;color:var(--ac)!important;font-family:'IBM P
 # ─────────────────────────────────────────────────────────────────────────────
 # UNIVERSE
 # ─────────────────────────────────────────────────────────────────────────────
-Q1_2026 = ["NVDA","ANET","PLTR","HUBS","HIMS","LLY","CRWD","DKNG","APP",
-           "AFRM","ONON","SHOP","NU","NFLX","AVGO","SPOT","META","MU",
-           "FTNT","SOFI","AMD","RDDT","TTD","AMZN","ROKU","MELI","PANW","XYZ"]
+# ── Core high-conviction picks ──
+Q1_2026 = [
+    "NVDA","ANET","PLTR","HUBS","HIMS","LLY","PMRTY","CRWD","DKNG","APP",
+    "AFRM","ONON","SHOP","NU","NFLX","AVGO","SPOT","META","MU","FTNT",
+    "SOFI","ALAB","AMD","RDDT","TTD","AMZN","ROKU","MELI","PANW","XYZ",
+]
 
-STB_ALL  = ["NVDA","ANET","DT","MELI","SHOP","TSM","GOOG","AMZN","ISRG",
-            "MSFT","SPOT","PLTR","CRWD","NFLX","CRM","AMD","ASML","META",
-            "IBKR","AXP","FTNT","NVO","HUBS","DUOL","NET","DOCS","HIMS",
-            "APP","LLY","DKNG","NU","AVGO","ONON","SOFI","TTD","PANW"]
+# ── Extended STB universe ──
+STB_ALL = [
+    "NVDA","ANET","DT","MELI","SHOP","TSM","GOOG","AMZN","ISRG","MSFT",
+    "SPOT","PLTR","CRWD","NFLX","CRM","AMD","ASML","META","IBKR","AXP",
+    "FTNT","NVO","HUBS","DUOL","NET","DOCS","HIMS","APP","LLY","DKNG",
+    "NU","AVGO","ONON","SOFI","TTD","PANW","JD","VEEV","IREN","BKNG",
+    "UBER","HOOD","BABA","ARGX","ELF","RYCEY","ETSY","UPWK","BRK-B",
+    "CRWV","COIN","BYDDY","UPST","WPLCF","KNSL","MGNI","AAPL","PDD",
+    "BIDU","TCEHY","MAR","ON","DOCU","TSLA","ENPH","PERI","TCOM","FUBO",
+    "GCT","LC","NBIS","AFRM","RDDT","ROKU","ALAB","SOFI","XYZ","ANET",
+]
+
+# ── Deduplicated master universe ──
+MASTER_UNIVERSE = sorted(set(Q1_2026 + STB_ALL))
+
+# ── Ticker metadata (name + sector) ──
+TICKER_META = {
+    "NVDA":"Nvidia · Semiconductors","ANET":"Arista Networks · Networking",
+    "PLTR":"Palantir · AI/Data","HUBS":"HubSpot · SaaS CRM",
+    "HIMS":"Hims & Hers · Health","LLY":"Eli Lilly · Pharma",
+    "PMRTY":"Prysmian · Infrastructure","CRWD":"CrowdStrike · Cybersecurity",
+    "DKNG":"DraftKings · Gaming","APP":"AppLovin · AdTech",
+    "AFRM":"Affirm · FinTech","ONON":"On Running · Footwear",
+    "SHOP":"Shopify · E-Commerce","NU":"Nu Holdings · FinTech",
+    "NFLX":"Netflix · Streaming","AVGO":"Broadcom · Semiconductors",
+    "SPOT":"Spotify · Streaming","META":"Meta · Social Media",
+    "MU":"Micron · Memory","FTNT":"Fortinet · Cybersecurity",
+    "SOFI":"SoFi · FinTech","ALAB":"Astera Labs · AI Networking",
+    "AMD":"AMD · Semiconductors","RDDT":"Reddit · Social Media",
+    "TTD":"Trade Desk · AdTech","AMZN":"Amazon · Cloud/Retail",
+    "ROKU":"Roku · Streaming","MELI":"MercadoLibre · LatAm E-Com",
+    "PANW":"Palo Alto · Cybersecurity","XYZ":"Block Inc · FinTech",
+    "TSM":"TSMC · Foundry","GOOG":"Alphabet · Search/Cloud",
+    "MSFT":"Microsoft · Cloud/AI","JD":"JD.com · China E-Com",
+    "VEEV":"Veeva · Life Sciences SaaS","ASML":"ASML · Lithography",
+    "IREN":"Iris Energy · BTC Mining","BKNG":"Booking Holdings · Travel",
+    "UBER":"Uber · Mobility","HOOD":"Robinhood · FinTech",
+    "BABA":"Alibaba · China Tech","ARGX":"argenx · Biotech",
+    "NET":"Cloudflare · Networking","DUOL":"Duolingo · EdTech",
+    "ELF":"e.l.f. Beauty · Consumer","AXP":"Amex · Financials",
+    "ISRG":"Intuitive Surgical · MedTech","DOCS":"Doximity · Health SaaS",
+    "RYCEY":"Rolls-Royce · Aerospace","ETSY":"Etsy · Marketplace",
+    "UPWK":"Upwork · Future of Work","BRK-B":"Berkshire · Conglomerate",
+    "CRWV":"CoreWeave · AI Cloud","COIN":"Coinbase · Crypto",
+    "IBKR":"IBKR · Brokerage","BYDDY":"BYD · EV/Batteries",
+    "UPST":"Upstart · AI Lending","CRM":"Salesforce · CRM",
+    "NVO":"Novo Nordisk · Pharma","WPLCF":"Wise PLC · FinTech",
+    "KNSL":"Kinsale Capital · Insurance","ETOR":"eToro · FinTech",
+    "MGNI":"Magnite · AdTech","AAPL":"Apple · Consumer Tech",
+    "PDD":"Pinduoduo · China E-Com","BIDU":"Baidu · China Search/AI",
+    "TCEHY":"Tencent · China Tech","MAR":"Marriott · Hospitality",
+    "ON":"onsemi · Power Semis","DOCU":"DocuSign · eSign SaaS",
+    "TSLA":"Tesla · EV/AI","ENPH":"Enphase · Solar",
+    "PERI":"Perion Network · AdTech","TCOM":"Trip.com · Travel",
+    "FUBO":"FuboTV · Streaming","GCT":"GigaCloud · B2B E-Com",
+    "LC":"LendingClub · FinTech","NBIS":"Nebius · AI Cloud",
+    "DT":"Dynatrace · Observability","SOFI":"SoFi · FinTech",
+}
 
 BONUS = [
     {"ticker":"CRWD",  "name":"Crowdstrike",  "buy":150.90, "qty":0.404},
@@ -669,10 +726,14 @@ def fig_financial_lines(ticker):
     for r in range(1,5):
         fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,row=r,col=1)
         fig.update_yaxes(gridcolor="#162040",showgrid=True,zeroline=True,zerolinecolor="#3a5070",row=r,col=1)
-    fig.update_yaxes(title_text="$B",    titlefont=dict(size=9,color="#b8cce0"), secondary_y=False, row=1, col=1)
-    fig.update_yaxes(title_text="Price", titlefont=dict(size=9,color="#ffb800"), secondary_y=True,  row=1, col=1, gridcolor="rgba(0,0,0,0)")
-    fig.update_yaxes(title_text="EPS $", titlefont=dict(size=9,color="#b8cce0"), secondary_y=False, row=3, col=1)
-    fig.update_yaxes(title_text="EPS Grw%",titlefont=dict(size=9,color="#ffb800"),secondary_y=True,row=3,col=1, gridcolor="rgba(0,0,0,0)")
+    # ── Axis titles via layout dict (avoids secondary_y ValueError in older plotly) ──
+    try:
+        fig.update_yaxes(title_text="$B",       row=1, col=1, secondary_y=False)
+        fig.update_yaxes(title_text="Price $",  row=1, col=1, secondary_y=True, gridcolor="rgba(0,0,0,0)")
+        fig.update_yaxes(title_text="EPS $",    row=3, col=1, secondary_y=False)
+        fig.update_yaxes(title_text="EPS Grw%", row=3, col=1, secondary_y=True, gridcolor="rgba(0,0,0,0)")
+    except Exception:
+        pass  # non-critical — cosmetic axis labels only
     return fig
 
 
@@ -795,11 +856,14 @@ def fig_overlay_price_vs_metrics(ticker):
     for r in range(1,6):
         fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,row=r,col=1)
         fig.update_yaxes(gridcolor="#162040",showgrid=True,zeroline=True,zerolinecolor="#3a5070",row=r,col=1)
-    fig.update_yaxes(title_text="Price $",   titlefont=dict(size=8,color="#ffb800"), row=1, col=1)
-    fig.update_yaxes(title_text="P/E",       titlefont=dict(size=8,color="#00e5ff"), row=2, col=1)
-    fig.update_yaxes(title_text="P/S",       titlefont=dict(size=8,color="#ff2d55"), row=3, col=1)
-    fig.update_yaxes(title_text="Rev Grw%",  titlefont=dict(size=8,color="#00ff9d"), row=4, col=1)
-    fig.update_yaxes(title_text="EPS Grw%",  titlefont=dict(size=8,color="#ffb800"), row=5, col=1)
+    try:
+        fig.update_yaxes(title_text="Price $",  row=1, col=1)
+        fig.update_yaxes(title_text="P/E",      row=2, col=1)
+        fig.update_yaxes(title_text="P/S",      row=3, col=1)
+        fig.update_yaxes(title_text="Rev Grw%", row=4, col=1)
+        fig.update_yaxes(title_text="EPS Grw%", row=5, col=1)
+    except Exception:
+        pass
     return fig
 
 
@@ -981,9 +1045,9 @@ def main():
     idx_html += "</div>"
     st.markdown(idx_html, unsafe_allow_html=True)
 
-    # ── TICKER TAPE ──
+    # ── TICKER TAPE (show all tickers) ──
     tape = ""
-    for t in Q1_2026:
+    for t in MASTER_UNIVERSE:
         p, chg, _ = get_price(t)
         if p and chg is not None:
             cls = "tu" if chg>0 else "td" if chg<0 else "tf"
@@ -1008,16 +1072,18 @@ def main():
     # ══════════ TAB 1 — LIVE RANKINGS ══════════
     with tab1:
         st.markdown('<div class="sh">🏆 LIVE STB RANKINGS — AUTO-COMPUTED EVERY 60s</div>', unsafe_allow_html=True)
-        fc1, fc2, fc3 = st.columns(3)
-        with fc1: uni  = st.radio("Universe",["Q1 2026","All STB","Combined"],
+        fc1, fc2, fc3, fc4 = st.columns(4)
+        with fc1: uni  = st.radio("Universe",["Q1 2026","STB Core","Master All"],
                                    horizontal=True,label_visibility="collapsed",key="rank_uni")
-        with fc2: topn = st.slider("Top N",10,40,25,label_visibility="collapsed",key="rank_topn")
-        with fc3: srt  = st.selectbox("Sort",["Score","Change %","Market Cap","P/E"],
+        with fc2: topn = st.slider("Top N",10,len(MASTER_UNIVERSE),30,label_visibility="collapsed",key="rank_topn")
+        with fc3: srt  = st.selectbox("Sort",["Score","Change %","Market Cap","P/E","P/S"],
                                         label_visibility="collapsed",key="rank_sort")
+        with fc4: sig_f = st.selectbox("Signal Filter",["All","STRONG BUY","BUY","HOLD","WATCH"],
+                                        label_visibility="collapsed",key="rank_sig_filter")
 
-        universe = Q1_2026 if uni=="Q1 2026" else STB_ALL if uni=="All STB" else list(dict.fromkeys(Q1_2026+STB_ALL))
+        universe = Q1_2026 if uni=="Q1 2026" else STB_ALL if uni=="STB Core" else MASTER_UNIVERSE
         rows = []
-        with st.spinner("⚡ Computing live scores..."):
+        with st.spinner(f"⚡ Computing live scores for {len(universe[:topn])} tickers..."):
             for tk in universe[:topn]:
                 p, chg, _ = get_price(tk)
                 info = get_info(tk)
@@ -1026,28 +1092,39 @@ def main():
                 au   = st.session_state.audit_cache.get(tk, {})
                 rows.append({
                     "Ticker":    tk,
+                    "Name":      TICKER_META.get(tk, tk).split("·")[0].strip(),
                     "Price":     f"${p:.2f}" if p else "—",
                     "Change %":  round((chg or 0)*100, 2),
                     "Score":     sc,
                     "Signal":    sig,
                     "P/E":       round(info.get("trailingPE") or 0, 1) or None,
                     "P/S":       round(info.get("priceToSalesTrailing12Months") or 0, 2) or None,
+                    "Fwd P/E":   round(info.get("forwardPE") or 0, 1) or None,
                     "Market Cap":fmt_mcap(info.get("marketCap")),
                     "Rev Grw":   fmt_pct(info.get("revenueGrowth")),
                     "EPS Grw":   fmt_pct(info.get("earningsGrowth")),
+                    "Sector":    TICKER_META.get(tk,"").split("·")[-1].strip() if "·" in TICKER_META.get(tk,"") else "—",
                     "Audit":     au.get("score","—") if au else "—",
                 })
 
         df = pd.DataFrame(rows)
+        if sig_f != "All":
+            sig_clean = sig_f
+            df = df[df["Signal"].str.contains(sig_clean, na=False)]
         if srt=="Score":      df = df.sort_values("Score",ascending=False)
         elif srt=="Change %": df = df.sort_values("Change %",ascending=False)
+        elif srt=="P/E":      df = df.sort_values("P/E",ascending=True, na_position="last")
+        elif srt=="P/S":      df = df.sort_values("P/S",ascending=True, na_position="last")
         df = df.reset_index(drop=True); df.index += 1
 
-        st.dataframe(df, use_container_width=True, height=560,
+        st.dataframe(df, use_container_width=True, height=580,
             column_config={
                 "Score":    st.column_config.ProgressColumn("Score",min_value=0,max_value=100,format="%.0f"),
                 "Change %": st.column_config.NumberColumn("Chg %",format="%.2f%%"),
                 "Audit":    st.column_config.NumberColumn("Audit",format="%d"),
+                "P/E":      st.column_config.NumberColumn("P/E",format="%.1f"),
+                "P/S":      st.column_config.NumberColumn("P/S",format="%.2f"),
+                "Fwd P/E":  st.column_config.NumberColumn("Fwd P/E",format="%.1f"),
             })
 
         dfc = df[["Ticker","Score"]].copy()
@@ -1060,7 +1137,7 @@ def main():
             '<div class="sh">📈 FINANCIAL CHARTS — PE · PS · REVENUE · EPS GROWTH vs STOCK PRICE</div>',
             unsafe_allow_html=True)
 
-        all_t = sorted(set(Q1_2026 + STB_ALL))
+        all_t = MASTER_UNIVERSE
         c1, c2 = st.columns([2, 1])
         with c1:
             # KEY FIX: unique key= avoids StreamlitDuplicateElementId
@@ -1185,7 +1262,7 @@ def main():
         with al:
             # KEY FIX: unique key= — was clashing with tab2's "Ticker" selectbox
             audit_t = st.selectbox("Select ticker to audit",
-                                    sorted(set(Q1_2026+STB_ALL)),
+                                    MASTER_UNIVERSE,
                                     label_visibility="collapsed", key="aud_ticker_sel")
             run_b   = st.button("⚡ RUN FULL AUDIT",      use_container_width=True, key="aud_run_btn")
             batch_b = st.button("🔄 BATCH AUDIT TOP 15",  use_container_width=True, key="aud_batch_btn")
@@ -1346,25 +1423,27 @@ def main():
                     f'<div class="cc {cc}">{fmt_pct(chg,False)}</div></div>',
                     unsafe_allow_html=True)
 
-        st.markdown('<div class="sh" style="margin-top:8px;">📅 UPCOMING EARNINGS (14 DAYS)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh" style="margin-top:8px;">📅 UPCOMING EARNINGS (30 DAYS)</div>', unsafe_allow_html=True)
         earns = []
-        with st.spinner("Scanning earnings dates..."):
-            for t in list(dict.fromkeys(Q1_2026+STB_ALL))[:30]:
+        with st.spinner("Scanning earnings dates across full universe..."):
+            for t in MASTER_UNIVERSE[:50]:
                 try:
                     info2 = get_info(t)
                     ts    = info2.get("earningsTimestamp")
                     if ts:
                         dt   = datetime.fromtimestamp(ts)
                         diff = (dt - datetime.now()).days
-                        if 0 <= diff <= 14:
+                        if 0 <= diff <= 30:
                             earns.append({"Ticker":t,"Date":dt.strftime("%Y-%m-%d"),
-                                          "Days Away":diff,"Company":info2.get("shortName","")})
+                                          "Days Away":diff,
+                                          "Company":info2.get("shortName",""),
+                                          "Sector": TICKER_META.get(t,"").split("·")[-1].strip()})
                 except Exception:
                     pass
         if earns:
-            st.dataframe(pd.DataFrame(earns).sort_values("Days Away"), use_container_width=True, height=200)
+            st.dataframe(pd.DataFrame(earns).sort_values("Days Away"), use_container_width=True, height=300)
         else:
-            st.info("No earnings within 14 days for tracked tickers.")
+            st.info("No earnings within 30 days for tracked tickers.")
 
     # ══════════ TAB 6 — COMMAND CENTER ══════════
     with tab6:
@@ -1407,12 +1486,21 @@ def main():
 
             st.markdown("---")
             st.markdown("**📋 UNIVERSES**")
-            vu = st.radio("Universe view",["Q1 2026","STB All","Bonus"],
+            vu = st.radio("Universe view",["Q1 2026","STB Core","Master All","Bonus"],
                            horizontal=True, label_visibility="collapsed", key="cmd_uni_radio")
             if vu=="Q1 2026":
-                st.write(" | ".join([f"**{t}**" for t in Q1_2026]))
-            elif vu=="STB All":
-                st.write(" | ".join([f"**{t}**" for t in STB_ALL]))
+                for t in Q1_2026:
+                    meta = TICKER_META.get(t,"")
+                    st.markdown(f"**{t}** — {meta}" if meta else f"**{t}**")
+            elif vu=="STB Core":
+                for t in STB_ALL:
+                    meta = TICKER_META.get(t,"")
+                    st.markdown(f"**{t}** — {meta}" if meta else f"**{t}**")
+            elif vu=="Master All":
+                cols = st.columns(3)
+                for i, t in enumerate(MASTER_UNIVERSE):
+                    meta = TICKER_META.get(t,"")
+                    cols[i%3].markdown(f"**{t}** {meta.split('·')[-1].strip() if '·' in meta else ''}")
             else:
                 for r in BONUS:
                     st.markdown(f"**{r['ticker']}** — {r['name']} @ ${r['buy']}")
@@ -1436,7 +1524,7 @@ def main():
 
             st.markdown(f"""
             ---
-            - **Tickers in universe:** {len(set(Q1_2026+STB_ALL))}
+            - **Tickers in universe:** {len(MASTER_UNIVERSE)}
             - **Audits cached:** {len(st.session_state.audit_cache)}
             - **Log entries:** {len(st.session_state.audit_log)}
             - **Auto-refresh:** every 60s (refresh #{refresh_count})
@@ -1449,7 +1537,7 @@ def main():
     st.markdown(f"""
     <div style="text-align:center;font-family:IBM Plex Mono,monospace;font-size:9px;
     color:#162040;letter-spacing:3px;padding:10px 0 4px;border-top:1px solid #162040;margin-top:10px;">
-      PYKUPZ LIVE TERMINAL · HEDGE FUND EDITION v4 · YAHOO FINANCE ·
+      PYKUPZ LIVE TERMINAL · HEDGE FUND EDITION v5 · {len(MASTER_UNIVERSE)} TICKERS · YAHOO FINANCE ·
       AUTO-REFRESH 60s · {now.strftime("%Y-%m-%d %H:%M:%S")} · NOT FINANCIAL ADVICE
     </div>
     """, unsafe_allow_html=True)
