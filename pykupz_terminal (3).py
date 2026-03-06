@@ -23,8 +23,8 @@ warnings.filterwarnings("ignore")
 # PAGE CONFIG  (must be first Streamlit call)
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="PYKUPZ LIVE TERMINAL",
-    page_icon="⚡",
+    page_title="PYKUPZ ANALYTICS TERMINAL",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -521,16 +521,19 @@ def run_audit(ticker):
     }
 
 def startup_audit():
-    bar = st.progress(0, text="⚡ AUTO-AUDITING TOP 10 PICKS...")
-    for i, t in enumerate(Q1_2026[:10]):
-        try:
-            res = run_audit(t)
-            st.session_state.audit_cache[t] = res
-            st.session_state.audit_log.append(res)
-        except Exception:
-            pass
-        bar.progress((i+1)/10, text=f"⚡ Auditing {t}... ({i+1}/10)")
-    bar.empty()
+    """Run on first load — uses a single placeholder to avoid ghost None slots."""
+    placeholder = st.empty()
+    with placeholder.container():
+        prog = st.progress(0, text="⚡ Initialising — auditing top picks...")
+        for i, t in enumerate(Q1_2026[:10]):
+            try:
+                res = run_audit(t)
+                st.session_state.audit_cache[t] = res
+                st.session_state.audit_log.append(res)
+            except Exception:
+                pass
+            prog.progress((i+1)/10, text=f"⚡ Auditing {t}... ({i+1}/10)")
+    placeholder.empty()          # wipes the entire container — no ghost slots
     st.session_state.startup_done = True
     st.session_state.last_run = datetime.now().strftime("%H:%M:%S")
 
@@ -724,16 +727,17 @@ def fig_financial_lines(ticker):
     )
     fig.update_annotations(font=dict(color="#3a5070",size=10,family="IBM Plex Mono"))
     for r in range(1,5):
-        fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,row=r,col=1)
+        # FIX: type='category' prevents Plotly treating year strings as floats (2,021.5 bug)
+        fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,
+                         type="category", row=r, col=1)
         fig.update_yaxes(gridcolor="#162040",showgrid=True,zeroline=True,zerolinecolor="#3a5070",row=r,col=1)
-    # ── Axis titles via layout dict (avoids secondary_y ValueError in older plotly) ──
     try:
         fig.update_yaxes(title_text="$B",       row=1, col=1, secondary_y=False)
         fig.update_yaxes(title_text="Price $",  row=1, col=1, secondary_y=True, gridcolor="rgba(0,0,0,0)")
         fig.update_yaxes(title_text="EPS $",    row=3, col=1, secondary_y=False)
         fig.update_yaxes(title_text="EPS Grw%", row=3, col=1, secondary_y=True, gridcolor="rgba(0,0,0,0)")
     except Exception:
-        pass  # non-critical — cosmetic axis labels only
+        pass
     return fig
 
 
@@ -998,7 +1002,7 @@ def fig_waterfall(ticker):
         textfont=dict(family="IBM Plex Mono", size=10, color="#b8cce0"),
     ))
     fig.update_layout(**base_layout(f"{ticker}  REVENUE WATERFALL ($B)", 360))
-    fig.update_xaxes(gridcolor="#162040")
+    fig.update_xaxes(gridcolor="#162040", type="category")
     fig.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
     return fig
 
@@ -1018,14 +1022,14 @@ def main():
     st.markdown(f"""
     <div class="hf-hdr">
       <div>
-        <div class="hf-logo">⚡ PYKUPZ LIVE TERMINAL</div>
-        <div class="hf-sub">HEDGE FUND EDITION v4 · 7-ALGO AUDIT · FULLY AUTOMATED · NO EXCEL</div>
+        <div class="hf-logo">📊 PYKUPZ ANALYTICS TERMINAL</div>
+        <div class="hf-sub">MARKET INTELLIGENCE · {len(MASTER_UNIVERSE)} TICKERS · 7-ALGO AUDIT · LIVE DATA · NOT FINANCIAL ADVICE</div>
       </div>
       <div style="text-align:right">
         <div class="hf-clock">{now.strftime("%H:%M:%S")}</div>
         <div class="hf-stat">
-          {mkt_html} &nbsp;|&nbsp; REFRESH #{refresh_count}
-          &nbsp;|&nbsp; LAST AUDIT: {st.session_state.last_run or "—"}
+          {mkt_html} &nbsp;|&nbsp; {now.strftime("%a %d %b %Y")}
+          &nbsp;|&nbsp; REFRESH #{refresh_count}
           &nbsp;|&nbsp; AUDITED: {len(st.session_state.audit_cache)} TICKERS
         </div>
       </div>
@@ -1058,14 +1062,15 @@ def main():
                     unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════════════
-    # TABS  — note: every widget has a unique key= to prevent DuplicateElementId
+    # TABS  — every widget has a unique key= to prevent DuplicateElementId
     # ══════════════════════════════════════════════════════════════
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "🏆  LIVE RANKINGS",
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "🏆  RANKINGS",
         "📈  FINANCIAL CHARTS",
         "🔬  AUDIT ENGINE",
         "💰  PORTFOLIO",
         "🌐  MARKET PULSE",
+        "🧠  DEEP INSIGHTS",
         "⚙️  COMMAND CENTER",
     ])
 
@@ -1097,14 +1102,14 @@ def main():
                     "Change %":  round((chg or 0)*100, 2),
                     "Score":     sc,
                     "Signal":    sig,
-                    "P/E":       round(info.get("trailingPE") or 0, 1) or None,
-                    "P/S":       round(info.get("priceToSalesTrailing12Months") or 0, 2) or None,
-                    "Fwd P/E":   round(info.get("forwardPE") or 0, 1) or None,
+                    "P/E":       round(float(info["trailingPE"]), 1) if info.get("trailingPE") else float("nan"),
+                    "P/S":       round(float(info["priceToSalesTrailing12Months"]), 2) if info.get("priceToSalesTrailing12Months") else float("nan"),
+                    "Fwd P/E":   round(float(info["forwardPE"]), 1) if info.get("forwardPE") else float("nan"),
                     "Market Cap":fmt_mcap(info.get("marketCap")),
                     "Rev Grw":   fmt_pct(info.get("revenueGrowth")),
                     "EPS Grw":   fmt_pct(info.get("earningsGrowth")),
                     "Sector":    TICKER_META.get(tk,"").split("·")[-1].strip() if "·" in TICKER_META.get(tk,"") else "—",
-                    "Audit":     au.get("score","—") if au else "—",
+                    "Audit":     int(au.get("score", 0)) if au and isinstance(au.get("score"), (int, float)) else float("nan"),
                 })
 
         df = pd.DataFrame(rows)
@@ -1268,18 +1273,20 @@ def main():
             batch_b = st.button("🔄 BATCH AUDIT TOP 15",  use_container_width=True, key="aud_batch_btn")
 
             if batch_b:
-                prog = st.progress(0, text="")
-                for i, t in enumerate(Q1_2026[:15]):
-                    try:
-                        res = run_audit(t)
-                        st.session_state.audit_cache[t] = res
-                        st.session_state.audit_log.append(res)
-                    except Exception:
-                        pass
-                    prog.progress((i+1)/15, text=f"Auditing {t}...")
-                st.session_state.last_run = datetime.now().strftime("%H:%M:%S")
-                prog.empty()
-                st.success("✅ Batch audit complete")
+                _ph = st.empty()
+                with _ph.container():
+                    prog = st.progress(0, text="Starting batch audit...")
+                    for i, t in enumerate(MASTER_UNIVERSE[:20]):
+                        try:
+                            res = run_audit(t)
+                            st.session_state.audit_cache[t] = res
+                            st.session_state.audit_log.append(res)
+                        except Exception:
+                            pass
+                        prog.progress((i+1)/20, text=f"Auditing {t}... ({i+1}/20)")
+                    st.session_state.last_run = datetime.now().strftime("%H:%M:%S")
+                _ph.empty()
+                st.success("✅ Batch audit complete — 20 tickers")
 
             if run_b:
                 with st.spinner(f"Running 7 algorithms on {audit_t}..."):
@@ -1445,8 +1452,166 @@ def main():
         else:
             st.info("No earnings within 30 days for tracked tickers.")
 
-    # ══════════ TAB 6 — COMMAND CENTER ══════════
+    # ══════════ TAB 6 — DEEP INSIGHTS ══════════
     with tab6:
+        st.markdown('<div class="sh">🧠 DEEP INSIGHTS — COMPARATIVE ANALYSIS & INTELLIGENCE</div>', unsafe_allow_html=True)
+
+        ins1, ins2 = st.columns([1, 1])
+
+        with ins1:
+            st.markdown("**📊 SIDE-BY-SIDE TICKER COMPARISON**")
+            cmp_tickers = st.multiselect(
+                "Compare up to 6 tickers",
+                MASTER_UNIVERSE,
+                default=["NVDA","META","AMZN","MSFT","GOOG","AAPL"],
+                max_selections=6,
+                key="ins_compare_sel",
+                label_visibility="collapsed",
+            )
+            if cmp_tickers:
+                cmp_rows = []
+                for tk in cmp_tickers:
+                    p, chg, _ = get_price(tk)
+                    info = get_info(tk)
+                    cmp_rows.append({
+                        "Ticker":    tk,
+                        "Price":     f"${p:.2f}" if p else "—",
+                        "Chg %":     round((chg or 0)*100, 2),
+                        "Score":     rank_score(info),
+                        "MCap":      fmt_mcap(info.get("marketCap")),
+                        "P/E":       round(float(info["trailingPE"]),1) if info.get("trailingPE") else float("nan"),
+                        "Fwd P/E":   round(float(info["forwardPE"]),1) if info.get("forwardPE") else float("nan"),
+                        "P/S":       round(float(info["priceToSalesTrailing12Months"]),2) if info.get("priceToSalesTrailing12Months") else float("nan"),
+                        "P/B":       round(float(info["priceToBook"]),2) if info.get("priceToBook") else float("nan"),
+                        "Rev Grw":   fmt_pct(info.get("revenueGrowth")),
+                        "EPS Grw":   fmt_pct(info.get("earningsGrowth")),
+                        "Gross Mgn": fmt_pct(info.get("grossMargins")),
+                        "Op Mgn":    fmt_pct(info.get("operatingMargins")),
+                        "Net Mgn":   fmt_pct(info.get("profitMargins")),
+                        "ROE":       fmt_pct(info.get("returnOnEquity")),
+                        "Debt/Eq":   round(float(info["debtToEquity"])/100,2) if info.get("debtToEquity") else float("nan"),
+                        "FCF $B":    round(float(info["freeCashflow"])/1e9,1) if info.get("freeCashflow") else float("nan"),
+                        "52W High":  f"${info.get('fiftyTwoWeekHigh',0):.2f}" if info.get("fiftyTwoWeekHigh") else "—",
+                        "52W Low":   f"${info.get('fiftyTwoWeekLow',0):.2f}" if info.get("fiftyTwoWeekLow") else "—",
+                        "Beta":      round(float(info["beta"]),2) if info.get("beta") else float("nan"),
+                        "Signal":    signal(rank_score(info), chg),
+                    })
+                df_cmp = pd.DataFrame(cmp_rows).set_index("Ticker")
+                st.dataframe(df_cmp.T, use_container_width=True, height=640)
+
+                # Radar-style bar comparison on key metrics
+                if len(cmp_tickers) >= 2:
+                    fig_cmp = go.Figure()
+                    metrics_to_plot = ["Score","P/E","P/S","Gross Mgn","Rev Grw","EPS Grw"]
+                    colors_list = ["#00e5ff","#00ff9d","#ffb800","#ff2d55","#9d4edd","#ffffff"]
+                    for tk, clr in zip(cmp_tickers, colors_list):
+                        row = next((r for r in cmp_rows if r["Ticker"]==tk), {})
+                        def safe_float(v):
+                            try:
+                                if isinstance(v, str):
+                                    return float(v.replace("%","").replace("$","").replace(",","").replace("—","0"))
+                                return float(v) if v == v else 0  # nan check
+                            except:
+                                return 0
+                        vals_plot = [safe_float(row.get(m, 0)) for m in metrics_to_plot]
+                        fig_cmp.add_trace(go.Bar(
+                            name=tk, x=metrics_to_plot, y=vals_plot,
+                            marker_color=clr, opacity=0.8,
+                            text=[f"{v:.1f}" for v in vals_plot], textposition="outside",
+                        ))
+                    fig_cmp.update_layout(
+                        paper_bgcolor="#03070f", plot_bgcolor="#070d1a",
+                        font=dict(family="IBM Plex Mono", color="#b8cce0", size=10),
+                        title=dict(text="COMPARATIVE KEY METRICS", font=dict(color="#00e5ff",size=13)),
+                        height=380, barmode="group",
+                        legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
+                        margin=dict(l=8,r=8,t=60,b=8),
+                    )
+                    fig_cmp.update_xaxes(gridcolor="#162040")
+                    fig_cmp.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
+                    st.plotly_chart(fig_cmp, use_container_width=True)
+
+        with ins2:
+            st.markdown("**⚡ SINGLE-TICKER DEEP DIVE**")
+            dive_t = st.selectbox("Select ticker for deep dive", MASTER_UNIVERSE,
+                                   key="ins_dive_sel", label_visibility="collapsed")
+            if dive_t:
+                with st.spinner(f"Loading deep data for {dive_t}..."):
+                    p, chg, _ = get_price(dive_t)
+                    info      = get_info(dive_t)
+                    sc        = rank_score(info)
+                    sig_v     = signal(sc, chg)
+                    inc, cf, bal, hist = get_all_financials(dive_t)
+
+                score_color = "#00ff9d" if sc>=70 else "#ffb800" if sc>=45 else "#ff2d55"
+
+                st.markdown(f"""
+                <div style="background:#0b1220;border:1px solid {score_color};border-radius:8px;padding:16px;margin-bottom:10px;">
+                  <div style="font-family:Bebas Neue,monospace;font-size:28px;color:{score_color};">{dive_t}</div>
+                  <div style="font-size:11px;color:#3a5070;font-family:IBM Plex Mono;">{TICKER_META.get(dive_t,"")}</div>
+                  <div style="font-family:IBM Plex Mono;font-size:18px;color:#e8f2ff;margin-top:6px;">
+                    ${p:.2f} <span style="color:{'#00ff9d' if (chg or 0)>=0 else '#ff2d55'}">{fmt_pct(chg,False)}</span>
+                    &nbsp;&nbsp; SCORE: <span style="color:{score_color}">{sc:.0f}/100</span>
+                    &nbsp;&nbsp; {sig_v}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Key metrics grid
+                metrics_grid = [
+                    ("Market Cap",    fmt_mcap(info.get("marketCap"))),
+                    ("Enterprise Val",fmt_mcap(info.get("enterpriseValue"))),
+                    ("Revenue TTM",   fmt_mcap(info.get("totalRevenue"))),
+                    ("Gross Margin",  fmt_pct(info.get("grossMargins"))),
+                    ("Op Margin",     fmt_pct(info.get("operatingMargins"))),
+                    ("Net Margin",    fmt_pct(info.get("profitMargins"))),
+                    ("ROE",           fmt_pct(info.get("returnOnEquity"))),
+                    ("ROA",           fmt_pct(info.get("returnOnAssets"))),
+                    ("FCF",           fmt_mcap(info.get("freeCashflow"))),
+                    ("Total Debt",    fmt_mcap(info.get("totalDebt"))),
+                    ("Cash",          fmt_mcap(info.get("totalCash"))),
+                    ("Employees",     f"{info.get('fullTimeEmployees',0):,}" if info.get("fullTimeEmployees") else "—"),
+                    ("52W High",      f"${info.get('fiftyTwoWeekHigh',0):.2f}" if info.get("fiftyTwoWeekHigh") else "—"),
+                    ("52W Low",       f"${info.get('fiftyTwoWeekLow',0):.2f}" if info.get("fiftyTwoWeekLow") else "—"),
+                    ("Beta",          f"{info.get('beta',0):.2f}" if info.get("beta") else "—"),
+                    ("Div Yield",     fmt_pct(info.get("dividendYield"))),
+                ]
+                grid_html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;">'
+                for lbl, val in metrics_grid:
+                    grid_html += (f'<div class="ab" style="padding:6px 10px;">'
+                                  f'<div class="cl">{lbl}</div>'
+                                  f'<div style="font-family:IBM Plex Mono,monospace;font-size:13px;color:#e8f2ff;">{val}</div></div>')
+                grid_html += '</div>'
+                st.markdown(grid_html, unsafe_allow_html=True)
+
+                # Analyst targets
+                target = info.get("targetMeanPrice")
+                if target and p:
+                    upside = (target - p) / p * 100
+                    t_clr = "#00ff9d" if upside > 0 else "#ff2d55"
+                    st.markdown(f"""
+                    <div class="ab" style="margin-bottom:8px;">
+                      <div class="cl">ANALYST CONSENSUS TARGET</div>
+                      <div style="font-family:IBM Plex Mono;font-size:16px;color:#e8f2ff;">
+                        ${target:.2f} &nbsp;
+                        <span style="color:{t_clr}">{upside:+.1f}% {'UPSIDE' if upside>0 else 'DOWNSIDE'}</span>
+                      </div>
+                      <div style="font-size:10px;color:#3a5070;margin-top:2px;">
+                        Low: ${info.get('targetLowPrice',0):.2f} &nbsp;|&nbsp;
+                        High: ${info.get('targetHighPrice',0):.2f} &nbsp;|&nbsp;
+                        Rec: {info.get('recommendationKey','—').upper()}
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Business summary
+                summary = info.get("longBusinessSummary","")
+                if summary:
+                    with st.expander("📋 Business Overview"):
+                        st.markdown(f'<div style="font-size:11px;color:#b8cce0;line-height:1.6;">{summary[:900]}{"..." if len(summary)>900 else ""}</div>',
+                                    unsafe_allow_html=True)
+
+    # ══════════ TAB 7 — COMMAND CENTER ══════════
+    with tab7:
         st.markdown('<div class="sh">⚙️ COMMAND CENTER</div>', unsafe_allow_html=True)
         cc1, cc2 = st.columns([2, 3])
 
@@ -1537,7 +1702,7 @@ def main():
     st.markdown(f"""
     <div style="text-align:center;font-family:IBM Plex Mono,monospace;font-size:9px;
     color:#162040;letter-spacing:3px;padding:10px 0 4px;border-top:1px solid #162040;margin-top:10px;">
-      PYKUPZ LIVE TERMINAL · HEDGE FUND EDITION v5 · {len(MASTER_UNIVERSE)} TICKERS · YAHOO FINANCE ·
+      PYKUPZ ANALYTICS TERMINAL · MARKET INTELLIGENCE · {len(MASTER_UNIVERSE)} TICKERS · YAHOO FINANCE ·
       AUTO-REFRESH 60s · {now.strftime("%Y-%m-%d %H:%M:%S")} · NOT FINANCIAL ADVICE
     </div>
     """, unsafe_allow_html=True)
