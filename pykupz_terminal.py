@@ -69,17 +69,56 @@ html,body,.main,.stApp,.block-container{
 /* ── Header ── */
 .hf-hdr{
   display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(90deg,#03070f 0%,#081428 50%,#03070f 100%);
-  border-bottom:2px solid var(--ac);padding:12px 4px 10px;margin-bottom:6px;
+  background:linear-gradient(135deg,#020810 0%,#071020 40%,#0a1830 60%,#020810 100%);
+  border-bottom:2px solid var(--ac);
+  padding:14px 8px 12px;margin-bottom:8px;
+  box-shadow:0 2px 40px rgba(0,212,245,.12);
 }
-.hf-logo{
-  font-family:var(--sans);font-size:22px;font-weight:900;
-  letter-spacing:6px;text-transform:uppercase;
-  color:var(--ac);text-shadow:0 0 24px rgba(0,212,245,.4);
+
+/* ── Two-line wordmark ── */
+.hf-wordmark{display:flex;flex-direction:column;gap:2px;}
+
+/* Line 1: PYKUPZ — large, bright, spaced */
+.hf-name{
+  font-family:Arial Black,Arial,sans-serif;
+  font-size:34px;
+  font-weight:900;
+  letter-spacing:10px;
+  text-transform:uppercase;
+  color:#ffffff;
+  line-height:1;
+  /* Crisp white with a subtle cyan glow */
+  text-shadow:
+    0 0 1px #fff,
+    0 0 20px rgba(0,212,245,.55),
+    0 0 40px rgba(0,212,245,.2);
 }
-.hf-sub{font-family:var(--mono);font-size:9px;color:var(--dm);letter-spacing:2px;margin-top:3px;}
-.hf-clock{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gn);}
-.hf-stat{font-family:var(--mono);font-size:9px;color:var(--dm);letter-spacing:1px;margin-top:3px;text-align:right;}
+
+/* Cyan dot separator */
+.hf-dot{color:var(--ac);font-size:34px;margin:0 2px;line-height:1;}
+
+/* Line 2: ANALYTICS TERMINAL */
+.hf-tagline{
+  font-family:Arial,sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:5px;text-transform:uppercase;
+  color:var(--ac);opacity:0.85;
+  padding-left:2px;
+}
+
+/* Right side: clock + status */
+.hf-right{text-align:right;}
+.hf-clock{
+  font-family:Courier New,monospace;
+  font-size:26px;font-weight:700;
+  color:var(--gn);
+  text-shadow:0 0 12px rgba(0,230,118,.4);
+  line-height:1;
+}
+.hf-stat{
+  font-family:Courier New,monospace;font-size:9px;
+  color:var(--dm);letter-spacing:1px;margin-top:4px;
+}
 
 /* ── Ticker tape ── */
 .tape{
@@ -1137,16 +1176,20 @@ def main():
     # ── HEADER ──
     st.markdown(f"""
     <div class="hf-hdr">
-      <div>
-        <div class="hf-logo">📊 PYKUPZ ANALYTICS TERMINAL</div>
-        <div class="hf-sub">MARKET INTELLIGENCE · {len(MASTER_UNIVERSE)} TICKERS · 7-ALGO AUDIT · LIVE DATA · NOT FINANCIAL ADVICE</div>
+      <div class="hf-wordmark">
+        <div style="display:flex;align-items:baseline;gap:0;">
+          <span class="hf-name">PYKUPZ</span>
+        </div>
+        <div class="hf-tagline">Analytics &nbsp;·&nbsp; Market Intelligence Terminal</div>
+        <div style="font-family:Courier New,monospace;font-size:8px;color:#2a4060;letter-spacing:2px;margin-top:3px;">
+          {len(MASTER_UNIVERSE)} TICKERS &nbsp;·&nbsp; 7-ALGO AUDIT &nbsp;·&nbsp; LIVE DATA &nbsp;·&nbsp; NOT FINANCIAL ADVICE
+        </div>
       </div>
-      <div style="text-align:right">
+      <div class="hf-right">
         <div class="hf-clock">{now.strftime("%H:%M:%S")}</div>
         <div class="hf-stat">
-          {mkt_html} &nbsp;|&nbsp; {now.strftime("%a %d %b %Y")}
-          &nbsp;|&nbsp; REFRESH #{refresh_count}
-          &nbsp;|&nbsp; AUDITED: {len(st.session_state.audit_cache)} TICKERS
+          {mkt_html} &nbsp;·&nbsp; {now.strftime("%a %d %b %Y")}<br>
+          REFRESH #{refresh_count} &nbsp;·&nbsp; AUDITED: {len(st.session_state.audit_cache)} TICKERS
         </div>
       </div>
     </div>
