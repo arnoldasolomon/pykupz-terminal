@@ -1,13 +1,27 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         PYKUPZ LIVE TERMINAL  —  HEDGE FUND EDITION  v4                    ║
-║  Fully Automated · No Excel · 7 Audit Algorithms · Overlay Financial Charts ║
-║  FIX: All StreamlitDuplicateElementId errors resolved with unique key=      ║
+║         PYKUPZ ANALYTICS TERMINAL  —  MARKET INTELLIGENCE  v7              ║
+║  78 Tickers · 7-Algo Audit · Live Charts · Deep Insights · No Excel        ║
+║  FIX v7: Removed streamlit-autorefresh dependency (ModuleNotFoundError)    ║
+║  Auto-refresh now uses native st.rerun() — zero external dependencies      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+requirements.txt  (create this file in your repo root):
+────────────────────────────────────────────────────
+streamlit>=1.32.0
+yfinance>=0.2.40
+pandas>=2.0.0
+plotly>=5.20.0
+numpy>=1.26.0
+scipy>=1.12.0
+openpyxl>=3.1.0
+xlsxwriter>=3.2.0
+────────────────────────────────────────────────────
+NOTE: streamlit-autorefresh is NOT needed in v7.
 """
 
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
+import time
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -32,7 +46,21 @@ st.set_page_config(
 # ─────────────────────────────────────────────────────────────────────────────
 # AUTO-REFRESH  60 s
 # ─────────────────────────────────────────────────────────────────────────────
-refresh_count = st_autorefresh(interval=60000, key="ar_main")
+# ─────────────────────────────────────────────────────────────────────────────
+# AUTO-REFRESH — native Streamlit (no external package required)
+# Tracks last refresh time in session state; triggers st.rerun() after 60s
+# ─────────────────────────────────────────────────────────────────────────────
+if "last_refresh" not in st.session_state:
+    st.session_state.last_refresh = time.time()
+    st.session_state.refresh_count = 0
+
+_now = time.time()
+if _now - st.session_state.last_refresh >= 60:
+    st.session_state.last_refresh = _now
+    st.session_state.refresh_count += 1
+    st.rerun()
+
+refresh_count = st.session_state.refresh_count
 
 # ─────────────────────────────────────────────────────────────────────────────
 # GLOBAL CSS / THEME
@@ -1725,6 +1753,6 @@ if __name__ == "__main__":
 #  4. _extract_annual_series() — shared function avoids 5× duplicate data fetches
 #
 # HOW TO RUN:
-#   pip install streamlit streamlit-autorefresh pandas plotly yfinance numpy scipy openpyxl xlsxwriter
+#   pip install streamlit pandas plotly yfinance numpy scipy openpyxl xlsxwriter
 #   streamlit run pykupz_terminal.py
 # ═══════════════════════════════════════════════════════════════════════════════
