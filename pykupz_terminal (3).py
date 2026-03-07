@@ -1,25 +1,55 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         PYKUPZ ANALYTICS TERMINAL  —  MARKET INTELLIGENCE  v7              ║
+║         PYKUPZ ANALYTICS TERMINAL  —  MARKET INTELLIGENCE  v8              ║
 ║  78 Tickers · 7-Algo Audit · Live Charts · Deep Insights · No Excel        ║
-║  FIX v7: Removed streamlit-autorefresh dependency (ModuleNotFoundError)    ║
-║  Auto-refresh now uses native st.rerun() — zero external dependencies      ║
+║  SELF-HEALING: Auto-installs any missing package at runtime                ║
+║  NO external dependencies beyond streamlit itself                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-
-requirements.txt  (create this file in your repo root):
-────────────────────────────────────────────────────
-streamlit>=1.32.0
-yfinance>=0.2.40
-pandas>=2.0.0
-plotly>=5.20.0
-numpy>=1.26.0
-scipy>=1.12.0
-openpyxl>=3.1.0
-xlsxwriter>=3.2.0
-────────────────────────────────────────────────────
-NOTE: streamlit-autorefresh is NOT needed in v7.
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SELF-HEALING DEPENDENCY SYSTEM
+#  Runs BEFORE any other import. If a package is missing it installs it live.
+#  This means the app works even if requirements.txt is incomplete or missing.
+# ═══════════════════════════════════════════════════════════════════════════════
+import sys
+import subprocess
+import importlib
+
+# Map: import_name -> pip install name (they differ for some packages)
+REQUIRED_PACKAGES = {
+    "yfinance":   "yfinance>=0.2.40",
+    "pandas":     "pandas>=2.0.0",
+    "numpy":      "numpy>=1.26.0",
+    "plotly":     "plotly>=5.20.0",
+    "scipy":      "scipy>=1.12.0",
+    "openpyxl":   "openpyxl>=3.1.0",
+    "xlsxwriter": "xlsxwriter>=3.2.0",
+}
+
+def _ensure_packages():
+    """Install any missing package silently before the app loads."""
+    missing = []
+    for import_name, pip_spec in REQUIRED_PACKAGES.items():
+        try:
+            importlib.import_module(import_name)
+        except ImportError:
+            missing.append(pip_spec)
+
+    if missing:
+        import streamlit as st
+        with st.spinner(f"⚙️ Installing {len(missing)} missing package(s): {', '.join(missing)} ..."):
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "--quiet"] + missing,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        st.success("✅ Packages installed — restarting...")
+        st.rerun()
+
+_ensure_packages()
+
+# ── Now safe to import everything ──
 import streamlit as st
 import time
 import yfinance as yf
@@ -43,9 +73,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# AUTO-REFRESH  60 s
-# ─────────────────────────────────────────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────────────────
 # AUTO-REFRESH — native Streamlit (no external package required)
 # Tracks last refresh time in session state; triggers st.rerun() after 60s
