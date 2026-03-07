@@ -48,6 +48,19 @@ refresh_count = st.session_state.refresh_count
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+/* ── Hide Streamlit Cloud toolbar that covers the header ── */
+#MainMenu {visibility: hidden !important;}
+header[data-testid="stHeader"] {
+  height: 0px !important;
+  min-height: 0px !important;
+  padding: 0 !important;
+  visibility: hidden !important;
+}
+div[data-testid="stDecoration"] {display: none !important;}
+div[data-testid="stToolbar"] {display: none !important;}
+footer {visibility: hidden !important;}
+.viewerBadge_container__1QSob {display: none !important;}
+
 /* ── System fonts only — no Google Fonts (blocked by Streamlit Cloud CSP) ── */
 :root{
   --bg:#03070f;--sf:#070d1a;--s2:#0b1220;--s3:#0f1830;
@@ -64,7 +77,12 @@ html,body,.main,.stApp,.block-container{
   color:#cdd9e8 !important;
   font-family:var(--sans) !important;
 }
-.block-container{padding:0.4rem 1.2rem 2rem !important;max-width:100% !important;}
+/* Push content to top since we removed the toolbar */
+.block-container{
+  padding:0.2rem 1.2rem 2rem !important;
+  max-width:100% !important;
+  margin-top:0 !important;
+}
 
 /* ── Header ── */
 .hf-hdr{
@@ -76,34 +94,31 @@ html,body,.main,.stApp,.block-container{
 }
 
 /* ── Two-line wordmark ── */
-.hf-wordmark{display:flex;flex-direction:column;gap:2px;}
+.hf-wordmark{display:flex;flex-direction:column;gap:3px;}
 
-/* Line 1: PYKUPZ — large, bright, spaced */
+/* Line 1: PYKUPZ — massive, pure white, glowing */
 .hf-name{
   font-family:Arial Black,Arial,sans-serif;
-  font-size:34px;
+  font-size:42px;
   font-weight:900;
-  letter-spacing:10px;
+  letter-spacing:12px;
   text-transform:uppercase;
   color:#ffffff;
   line-height:1;
-  /* Crisp white with a subtle cyan glow */
   text-shadow:
-    0 0 1px #fff,
-    0 0 20px rgba(0,212,245,.55),
-    0 0 40px rgba(0,212,245,.2);
+    0 0 2px #fff,
+    0 0 30px rgba(0,212,245,.7),
+    0 0 60px rgba(0,212,245,.3);
 }
 
-/* Cyan dot separator */
-.hf-dot{color:var(--ac);font-size:34px;margin:0 2px;line-height:1;}
-
-/* Line 2: ANALYTICS TERMINAL */
+/* Line 2: ANALYTICS TERMINAL subtitle */
 .hf-tagline{
   font-family:Arial,sans-serif;
   font-size:11px;font-weight:700;
-  letter-spacing:5px;text-transform:uppercase;
-  color:var(--ac);opacity:0.85;
-  padding-left:2px;
+  letter-spacing:6px;text-transform:uppercase;
+  color:var(--ac);opacity:0.9;
+  padding-left:3px;
+  margin-top:2px;
 }
 
 /* Right side: clock + status */
