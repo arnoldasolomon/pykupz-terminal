@@ -48,83 +48,190 @@ refresh_count = st.session_state.refresh_count
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
+/* ── System fonts only — no Google Fonts (blocked by Streamlit Cloud CSP) ── */
 :root{
   --bg:#03070f;--sf:#070d1a;--s2:#0b1220;--s3:#0f1830;
-  --bd:#162040;--ac:#00e5ff;--gn:#00ff9d;--rd:#ff2d55;
-  --am:#ffb800;--pu:#9d4edd;--tx:#b8cce0;--dm:#3a5070;--wh:#e8f2ff;
+  --bd:#1a2a45;--ac:#00d4f5;--gn:#00e676;--rd:#ff1744;
+  --am:#ffc400;--pu:#9c27b0;--tx:#cdd9e8;--dm:#4a6080;--wh:#eaf2ff;
+  --mono:'Courier New',Courier,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
 }
-*,html,body{box-sizing:border-box;}
-html,body,.main,[class*="css"],.block-container{
-  background:var(--bg)!important;color:var(--tx)!important;
-  font-family:'Inter',sans-serif!important;
+
+/* ── Global reset ── */
+*{box-sizing:border-box;}
+html,body,.main,.stApp,.block-container{
+  background:#03070f !important;
+  color:#cdd9e8 !important;
+  font-family:var(--sans) !important;
 }
-.block-container{padding:.5rem 1.5rem 2rem!important;max-width:100%!important;}
-.hf-hdr{display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(90deg,#03070f,#0a1628,#03070f);
-  border-bottom:1px solid var(--ac);padding:10px 0;margin-bottom:4px;
-  box-shadow:0 1px 30px rgba(0,229,255,.08);}
-.hf-logo{font-family:'Bebas Neue',monospace;font-size:32px;letter-spacing:8px;
-  color:var(--ac);text-shadow:0 0 20px rgba(0,229,255,.5);}
-.hf-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dm);
-  letter-spacing:3px;margin-top:2px;}
-.hf-clock{font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--gn);
-  text-shadow:0 0 10px rgba(0,255,157,.4);}
-.hf-stat{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dm);
-  letter-spacing:2px;margin-top:3px;text-align:right;}
-.tape{background:var(--sf);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
-  padding:6px 0;overflow:hidden;white-space:nowrap;margin:4px 0 10px;}
-.tape-inner{display:inline-block;animation:tape 90s linear infinite;
-  font-family:'IBM Plex Mono',monospace;font-size:12px;}
-@keyframes tape{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.block-container{padding:0.4rem 1.2rem 2rem !important;max-width:100% !important;}
+
+/* ── Header ── */
+.hf-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,#03070f 0%,#081428 50%,#03070f 100%);
+  border-bottom:2px solid var(--ac);padding:12px 4px 10px;margin-bottom:6px;
+}
+.hf-logo{
+  font-family:var(--sans);font-size:22px;font-weight:900;
+  letter-spacing:6px;text-transform:uppercase;
+  color:var(--ac);text-shadow:0 0 24px rgba(0,212,245,.4);
+}
+.hf-sub{font-family:var(--mono);font-size:9px;color:var(--dm);letter-spacing:2px;margin-top:3px;}
+.hf-clock{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gn);}
+.hf-stat{font-family:var(--mono);font-size:9px;color:var(--dm);letter-spacing:1px;margin-top:3px;text-align:right;}
+
+/* ── Ticker tape ── */
+.tape{
+  background:var(--sf);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
+  padding:5px 0;overflow:hidden;white-space:nowrap;margin:4px 0 8px;
+}
+.tape-inner{display:inline-block;animation:scroll-tape 120s linear infinite;font-family:var(--mono);font-size:11px;}
+@keyframes scroll-tape{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tu{color:var(--gn);margin:0 16px}.td{color:var(--rd);margin:0 16px}.tf{color:var(--dm);margin:0 16px}
 .up{color:var(--gn)}.down{color:var(--rd)}.flat{color:var(--dm)}
-.tu{color:var(--gn);margin:0 18px}.td{color:var(--rd);margin:0 18px}.tf{color:var(--dm);margin:0 18px}
-.idx{display:flex;gap:10px;flex-wrap:wrap;background:var(--sf);
-  border:1px solid var(--bd);border-radius:6px;padding:8px 14px;margin-bottom:8px;}
-.idx-i{font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:130px;}
-.idx-n{color:var(--dm);font-size:10px;letter-spacing:1px;}
-.card{background:var(--sf);border:1px solid var(--bd);border-radius:6px;
-  padding:12px 16px;position:relative;overflow:hidden;}
-.card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac);}
-.card.gn::after{background:var(--gn)}.card.rd::after{background:var(--rd)}
-.card.am::after{background:var(--am)}.card.pu::after{background:var(--pu)}
-.cv{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;
-  color:var(--wh);margin-bottom:2px;}
-.cl{font-size:9px;color:var(--dm);letter-spacing:2px;text-transform:uppercase;}
-.cc{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:3px;}
-.sh{font-family:'Bebas Neue',monospace;font-size:17px;letter-spacing:4px;
-  color:var(--ac);border-bottom:1px solid var(--bd);padding-bottom:5px;margin:14px 0 8px;}
-.ab{background:var(--s2);border:1px solid var(--bd);border-radius:6px;
-  padding:10px 14px;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
+
+/* ── Index bar ── */
+.idx{
+  display:flex;gap:8px;flex-wrap:wrap;
+  background:var(--sf);border:1px solid var(--bd);border-radius:6px;
+  padding:6px 12px;margin-bottom:6px;
+}
+.idx-i{font-family:var(--mono);font-size:11px;min-width:120px;}
+.idx-n{color:var(--dm);font-size:9px;letter-spacing:1px;display:block;margin-bottom:1px;}
+
+/* ── Section header ── */
+.sh{
+  font-family:var(--sans);font-size:11px;font-weight:700;
+  letter-spacing:4px;text-transform:uppercase;
+  color:var(--ac);border-bottom:1px solid var(--bd);
+  padding-bottom:6px;margin:16px 0 10px;
+}
+
+/* ── Cards ── */
+.card{
+  background:var(--sf);border:1px solid var(--bd);border-radius:6px;
+  padding:12px 14px;position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac);}
+.card.gn::before{background:var(--gn)}.card.rd::before{background:var(--rd)}
+.card.am::before{background:var(--am)}.card.pu::before{background:var(--pu)}
+.cv{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--wh);margin-bottom:2px;}
+.cl{font-size:8px;color:var(--dm);letter-spacing:2px;text-transform:uppercase;}
+.cc{font-family:var(--mono);font-size:11px;margin-top:2px;}
+
+/* ── Metric box ── */
+.ab{
+  background:var(--s2);border:1px solid var(--bd);border-radius:6px;
+  padding:8px 12px;margin-bottom:5px;font-family:var(--mono);font-size:11px;
+}
 .ar{display:flex;align-items:center;justify-content:space-between;
-  padding:4px 0;border-bottom:1px solid var(--bd);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  padding:3px 0;border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:11px;}
 .ar:last-child{border-bottom:none;}
-.an{color:var(--dm);width:240px;flex-shrink:0;}
-.stTabs [data-baseweb="tab-list"]{background:var(--s2)!important;border-bottom:1px solid var(--bd)!important;gap:1px;}
-.stTabs [data-baseweb="tab"]{font-family:'IBM Plex Mono',monospace!important;font-size:10px!important;
-  letter-spacing:2px!important;color:var(--dm)!important;padding:8px 14px!important;}
-.stTabs [aria-selected="true"]{color:var(--ac)!important;border-bottom:2px solid var(--ac)!important;}
-.stDataFrame>div{background:var(--sf)!important;border-radius:6px;}
-div[data-testid="stDataFrame"]{background:var(--sf)!important;}
-.stSelectbox>div>div,.stTextInput input,.stMultiSelect>div{
-  background:var(--s2)!important;border-color:var(--bd)!important;
-  color:var(--wh)!important;font-family:'IBM Plex Mono',monospace!important;}
-.stTextInput input{color:var(--ac)!important;}
-.stTextInput input::placeholder{color:var(--dm)!important;}
-.stButton button{background:transparent!important;border:1px solid var(--ac)!important;
-  color:var(--ac)!important;font-family:'IBM Plex Mono',monospace!important;
-  font-size:11px!important;letter-spacing:2px!important;border-radius:4px!important;}
-.stButton button:hover{background:rgba(0,229,255,.08)!important;}
-section[data-testid="stSidebar"]{background:var(--sf)!important;border-right:1px solid var(--bd)!important;}
-.streamlit-expanderHeader{background:var(--s2)!important;color:var(--ac)!important;
-  font-family:'IBM Plex Mono',monospace!important;font-size:11px!important;}
-details{border:1px solid var(--bd)!important;border-radius:6px!important;}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--ac);border-radius:2px}
-p,span,li{font-family:'Inter',sans-serif!important;}
-code{background:var(--s3)!important;color:var(--ac)!important;font-family:'IBM Plex Mono',monospace!important;}
+.an{color:var(--dm);width:220px;flex-shrink:0;}
+
+/* ── Rankings score bar (custom HTML table) ── */
+.rank-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
+.rank-tbl thead tr{background:#0a1628;border-bottom:2px solid var(--ac);}
+.rank-tbl thead th{
+  padding:8px 10px;text-align:left;font-size:9px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--ac);
+  white-space:nowrap;
+}
+.rank-tbl tbody tr{border-bottom:1px solid #111e35;}
+.rank-tbl tbody tr:hover{background:rgba(0,212,245,.04);}
+.rank-tbl tbody td{padding:7px 10px;color:var(--tx);vertical-align:middle;white-space:nowrap;}
+.rank-tbl tbody td.num{text-align:right;font-family:var(--mono);}
+.rk-num{color:var(--dm);font-size:10px;}
+.rk-ticker{color:var(--wh);font-weight:700;font-size:12px;}
+.rk-name{color:var(--dm);font-size:10px;}
+.score-bar-wrap{display:flex;align-items:center;gap:6px;min-width:110px;}
+.score-bar-bg{flex:1;background:#0f1c30;border-radius:3px;height:6px;overflow:hidden;}
+.score-bar-fill{height:6px;border-radius:3px;transition:width .3s;}
+.score-num{font-size:11px;font-weight:700;min-width:26px;text-align:right;}
+.sig-badge{
+  display:inline-block;padding:2px 7px;border-radius:3px;
+  font-size:9px;font-weight:700;letter-spacing:1px;white-space:nowrap;
+}
+.sig-sb{background:rgba(0,230,118,.15);color:#00e676;border:1px solid rgba(0,230,118,.3);}
+.sig-b {background:rgba(0,212,245,.12);color:#00d4f5;border:1px solid rgba(0,212,245,.25);}
+.sig-h {background:rgba(255,196,0,.10);color:#ffc400;border:1px solid rgba(255,196,0,.2);}
+.sig-w {background:rgba(255,23,68,.10);color:#ff1744;border:1px solid rgba(255,23,68,.2);}
+.chg-up{color:var(--gn);font-weight:600;}
+.chg-dn{color:var(--rd);font-weight:600;}
+.chg-fl{color:var(--dm);}
+.audit-hi{color:var(--gn);font-weight:700;}
+.audit-md{color:var(--am);font-weight:700;}
+.audit-lo{color:var(--rd);font-weight:700;}
+.audit-na{color:var(--dm);}
+.sect-tag{font-size:9px;color:var(--dm);}
+
+/* ── Tabs — broad selectors to catch Streamlit Cloud variant ── */
+.stTabs [data-baseweb="tab-list"],
+div[role="tablist"]{
+  background:#070d1a !important;
+  border-bottom:1px solid #1a2a45 !important;
+  gap:0 !important;
+  padding:0 !important;
+}
+.stTabs [data-baseweb="tab"],
+div[role="tab"]{
+  font-family:var(--mono) !important;font-size:10px !important;
+  letter-spacing:2px !important;font-weight:600 !important;
+  color:#4a6080 !important;padding:10px 16px !important;
+  border-bottom:2px solid transparent !important;
+  background:transparent !important;
+  text-transform:uppercase !important;
+}
+.stTabs [aria-selected="true"],
+div[role="tab"][aria-selected="true"]{
+  color:#00d4f5 !important;
+  border-bottom:2px solid #00d4f5 !important;
+  background:rgba(0,212,245,.05) !important;
+}
+
+/* ── DataFrame overrides ── */
+div[data-testid="stDataFrame"]{background:#070d1a !important;border-radius:6px !important;}
+div[data-testid="stDataFrame"] *{font-family:var(--mono) !important;font-size:11px !important;}
+div[data-testid="stDataFrame"] th{
+  background:#0a1628 !important;color:#00d4f5 !important;
+  font-size:9px !important;letter-spacing:1px !important;font-weight:700 !important;
+}
+div[data-testid="stDataFrame"] td{color:#cdd9e8 !important;border-color:#1a2a45 !important;}
+
+/* ── Widgets ── */
+.stSelectbox > div > div,
+.stMultiSelect > div > div,
+.stTextInput input{
+  background:#0b1220 !important;border-color:#1a2a45 !important;
+  color:#eaf2ff !important;font-family:var(--mono) !important;font-size:11px !important;
+}
+.stTextInput input::placeholder{color:#4a6080 !important;}
+.stRadio label{color:#cdd9e8 !important;font-family:var(--mono) !important;font-size:11px !important;}
+.stSlider [data-baseweb="slider"]{background:#1a2a45 !important;}
+.stButton > button{
+  background:transparent !important;border:1px solid #00d4f5 !important;
+  color:#00d4f5 !important;font-family:var(--mono) !important;
+  font-size:10px !important;letter-spacing:2px !important;
+  border-radius:4px !important;text-transform:uppercase !important;
+}
+.stButton > button:hover{background:rgba(0,212,245,.08) !important;}
+.stProgress > div > div > div{background:var(--ac) !important;}
+
+/* ── Expander ── */
+details{border:1px solid var(--bd) !important;border-radius:6px !important;background:var(--s2) !important;}
+summary{color:var(--ac) !important;font-family:var(--mono) !important;font-size:11px !important;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#03070f}
+::-webkit-scrollbar-thumb{background:#1a2a45;border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:#00d4f5}
+
+/* ── Misc ── */
+code{background:#0f1830 !important;color:#00d4f5 !important;font-family:var(--mono) !important;}
+.stAlert{background:#0b1220 !important;border-color:#1a2a45 !important;}
+hr{border-color:#1a2a45 !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -301,11 +408,11 @@ def base_layout(title_text, height=420):
     return dict(
         paper_bgcolor="#03070f",
         plot_bgcolor="#070d1a",
-        font=dict(family="IBM Plex Mono", color="#b8cce0", size=11),
-        title=dict(text=title_text, font=dict(color="#00e5ff", size=14)),
+        font=dict(family="Courier New", color="#cdd9e8", size=11),
+        title=dict(text=title_text, font=dict(color="#00d4f5", size=14)),
         height=height,
         margin=dict(l=8, r=8, t=48, b=8),
-        legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="#162040",
+        legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="#1a2a45",
                     orientation="h", y=1.10, x=0),
     )
 
@@ -561,22 +668,22 @@ def fig_candlestick(ticker, period="1y"):
     bbu, bbl = ma20+2*std, ma20-2*std
     fig.add_trace(go.Candlestick(
         x=h.index, open=h["Open"], high=h["High"], low=h["Low"], close=h["Close"],
-        name="OHLC", increasing_fillcolor="#00ff9d", decreasing_fillcolor="#ff2d55",
-        increasing_line_color="#00ff9d", decreasing_line_color="#ff2d55"), row=1, col=1)
+        name="OHLC", increasing_fillcolor="#00e676", decreasing_fillcolor="#ff1744",
+        increasing_line_color="#00e676", decreasing_line_color="#ff1744"), row=1, col=1)
     fig.add_trace(go.Scatter(x=h.index,y=ma20,mode="lines",name="MA20",
                               line=dict(color="#ffb800",width=1)),row=1,col=1)
     fig.add_trace(go.Scatter(x=h.index,y=ma50,mode="lines",name="MA50",
                               line=dict(color="#9d4edd",width=1,dash="dot")),row=1,col=1)
     fig.add_trace(go.Scatter(x=h.index,y=bbu,mode="lines",name="BB+",
-                              line=dict(color="#00e5ff",width=0.7,dash="dash")),row=1,col=1)
+                              line=dict(color="#00d4f5",width=0.7,dash="dash")),row=1,col=1)
     fig.add_trace(go.Scatter(x=h.index,y=bbl,mode="lines",name="BB-",
-                              line=dict(color="#00e5ff",width=0.7,dash="dash"),
+                              line=dict(color="#00d4f5",width=0.7,dash="dash"),
                               fill="tonexty",fillcolor="rgba(0,229,255,0.03)"),row=1,col=1)
-    colors = ["#00ff9d" if c>=o else "#ff2d55" for c,o in zip(h["Close"],h["Open"])]
+    colors = ["#00e676" if c>=o else "#ff1744" for c,o in zip(h["Close"],h["Open"])]
     fig.add_trace(go.Bar(x=h.index,y=h["Volume"],name="Vol",marker_color=colors,opacity=0.5),row=2,col=1)
     fig.update_layout(**base_layout(f"⚡ {ticker}  CANDLESTICK + BOLLINGER BANDS + VOLUME", 500))
-    fig.update_xaxes(rangeslider_visible=False, gridcolor="#162040")
-    fig.update_yaxes(gridcolor="#162040", zeroline=False)
+    fig.update_xaxes(rangeslider_visible=False, gridcolor="#1a2a45")
+    fig.update_yaxes(gridcolor="#1a2a45", zeroline=False)
     return fig
 
 
@@ -696,19 +803,19 @@ def fig_financial_lines(ticker):
         fig.add_trace(go.Scatter(x=ky, y=[d["pe_yr"][y] for y in ky], name="P/E",
                                   mode="lines+markers+text",
                                   text=[f"{v:.0f}" for v in [d["pe_yr"][y] for y in ky]],
-                                  textposition="top center", textfont=dict(size=9,color="#00e5ff"),
-                                  line=dict(color="#00e5ff",width=2), marker=dict(size=7)), row=2, col=1)
+                                  textposition="top center", textfont=dict(size=9,color="#00d4f5"),
+                                  line=dict(color="#00d4f5",width=2), marker=dict(size=7)), row=2, col=1)
     if d["ps_yr"]:
         ky = sorted(d["ps_yr"].keys())
         fig.add_trace(go.Scatter(x=ky, y=[d["ps_yr"][y] for y in ky], name="P/S",
                                   mode="lines+markers+text",
                                   text=[f"{v:.1f}" for v in [d["ps_yr"][y] for y in ky]],
-                                  textposition="bottom center", textfont=dict(size=9,color="#ff2d55"),
-                                  line=dict(color="#ff2d55",width=2), marker=dict(size=7)), row=2, col=1)
+                                  textposition="bottom center", textfont=dict(size=9,color="#ff1744"),
+                                  line=dict(color="#ff1744",width=2), marker=dict(size=7)), row=2, col=1)
 
     # Panel 3 — EPS bars + EPS growth line
     if d["eps_d"]:
-        ec = ["#00ff9d" if (d["eps_d"].get(y,0) or 0)>=0 else "#ff2d55" for y in all_years]
+        ec = ["#00e676" if (d["eps_d"].get(y,0) or 0)>=0 else "#ff1744" for y in all_years]
         fig.add_trace(go.Bar(x=all_years, y=[d["eps_d"].get(y) for y in all_years],
                              name="EPS $", marker_color=ec, opacity=0.75),
                       row=3, col=1, secondary_y=False)
@@ -723,23 +830,23 @@ def fig_financial_lines(ticker):
     # Panel 4 — Revenue growth bars
     if d["rev_g"]:
         ky = sorted(d["rev_g"].keys()); rv = [d["rev_g"][y] for y in ky]
-        rc = ["#00ff9d" if (v or 0)>=0 else "#ff2d55" for v in rv]
+        rc = ["#00e676" if (v or 0)>=0 else "#ff1744" for v in rv]
         fig.add_trace(go.Bar(x=ky, y=rv, name="Rev Grw %", marker_color=rc,
                              text=[f"{v:.1f}%" for v in rv], textposition="outside",
-                             textfont=dict(size=9,family="IBM Plex Mono",color="#b8cce0")), row=4, col=1)
+                             textfont=dict(size=9,family="Courier New",color="#cdd9e8")), row=4, col=1)
 
     fig.update_layout(
         paper_bgcolor="#03070f", plot_bgcolor="#070d1a",
-        font=dict(family="IBM Plex Mono", color="#b8cce0", size=10),
+        font=dict(family="Courier New", color="#cdd9e8", size=10),
         height=950, margin=dict(l=8,r=8,t=60,b=8), barmode="group",
         legend=dict(orientation="h",y=1.04,bgcolor="rgba(0,0,0,0)",x=0),
     )
-    fig.update_annotations(font=dict(color="#3a5070",size=10,family="IBM Plex Mono"))
+    fig.update_annotations(font=dict(color="#4a6080",size=10,family="Courier New"))
     for r in range(1,5):
         # FIX: type='category' prevents Plotly treating year strings as floats (2,021.5 bug)
-        fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,
+        fig.update_xaxes(gridcolor="#1a2a45",showgrid=True,zeroline=False,
                          type="category", row=r, col=1)
-        fig.update_yaxes(gridcolor="#162040",showgrid=True,zeroline=True,zerolinecolor="#3a5070",row=r,col=1)
+        fig.update_yaxes(gridcolor="#1a2a45",showgrid=True,zeroline=True,zerolinecolor="#4a6080",row=r,col=1)
     try:
         fig.update_yaxes(title_text="$B",       row=1, col=1, secondary_y=False)
         fig.update_yaxes(title_text="Price $",  row=1, col=1, secondary_y=True, gridcolor="rgba(0,0,0,0)")
@@ -811,14 +918,14 @@ def fig_overlay_price_vs_metrics(ticker):
             x=xd, y=yv, name="P/E Ratio",
             mode="lines+markers+text",
             text=[f"{v:.0f}x" for v in yv], textposition="top center",
-            textfont=dict(size=8, color="#00e5ff"),
-            line=dict(color="#00e5ff", width=2),
-            marker=dict(size=8, color="#00e5ff")), row=2, col=1)
+            textfont=dict(size=8, color="#00d4f5"),
+            line=dict(color="#00d4f5", width=2),
+            marker=dict(size=8, color="#00d4f5")), row=2, col=1)
         # Reference lines
         for ref, lbl in [(25,"25x"),(50,"50x"),(100,"100x")]:
-            fig.add_hline(y=ref, line=dict(color="#162040",width=1,dash="dot"),
+            fig.add_hline(y=ref, line=dict(color="#1a2a45",width=1,dash="dot"),
                           annotation_text=lbl,
-                          annotation_font=dict(color="#3a5070",size=8), row=2, col=1)
+                          annotation_font=dict(color="#4a6080",size=8), row=2, col=1)
 
     # ── Panel 3: P/S over time ──
     if d["ps_yr"]:
@@ -828,47 +935,47 @@ def fig_overlay_price_vs_metrics(ticker):
             x=xd, y=yv, name="P/S Ratio",
             mode="lines+markers+text",
             text=[f"{v:.1f}x" for v in yv], textposition="top center",
-            textfont=dict(size=8, color="#ff2d55"),
-            line=dict(color="#ff2d55", width=2),
-            marker=dict(size=8, color="#ff2d55")), row=3, col=1)
+            textfont=dict(size=8, color="#ff1744"),
+            line=dict(color="#ff1744", width=2),
+            marker=dict(size=8, color="#ff1744")), row=3, col=1)
         for ref, lbl in [(5,"5x"),(10,"10x"),(20,"20x"),(40,"40x")]:
-            fig.add_hline(y=ref, line=dict(color="#162040",width=1,dash="dot"),
+            fig.add_hline(y=ref, line=dict(color="#1a2a45",width=1,dash="dot"),
                           annotation_text=lbl,
-                          annotation_font=dict(color="#3a5070",size=8), row=3, col=1)
+                          annotation_font=dict(color="#4a6080",size=8), row=3, col=1)
 
     # ── Panel 4: Revenue Growth % bars ──
     if d["rev_g"]:
         ky = sorted(d["rev_g"].keys())
         xd = [yr_to_dt(y) for y in ky]; yv = [d["rev_g"][y] for y in ky]
-        colors = ["#00ff9d" if (v or 0)>=0 else "#ff2d55" for v in yv]
+        colors = ["#00e676" if (v or 0)>=0 else "#ff1744" for v in yv]
         fig.add_trace(go.Bar(
             x=xd, y=yv, name="Rev Grw %", marker_color=colors,
             text=[f"{v:.1f}%" for v in yv], textposition="outside",
-            textfont=dict(size=8, family="IBM Plex Mono", color="#b8cce0")), row=4, col=1)
-        fig.add_hline(y=0, line=dict(color="#3a5070",width=1), row=4, col=1)
+            textfont=dict(size=8, family="Courier New", color="#cdd9e8")), row=4, col=1)
+        fig.add_hline(y=0, line=dict(color="#4a6080",width=1), row=4, col=1)
 
     # ── Panel 5: EPS Growth % bars ──
     if d["eps_g"]:
         ky = sorted(d["eps_g"].keys())
         xd = [yr_to_dt(y) for y in ky]; yv = [d["eps_g"][y] for y in ky]
-        colors = ["#00ff9d" if (v or 0)>=0 else "#ff2d55" for v in yv]
+        colors = ["#00e676" if (v or 0)>=0 else "#ff1744" for v in yv]
         fig.add_trace(go.Bar(
             x=xd, y=yv, name="EPS Grw %", marker_color=colors,
             text=[f"{v:.1f}%" for v in yv], textposition="outside",
-            textfont=dict(size=8, family="IBM Plex Mono", color="#b8cce0")), row=5, col=1)
-        fig.add_hline(y=0, line=dict(color="#3a5070",width=1), row=5, col=1)
+            textfont=dict(size=8, family="Courier New", color="#cdd9e8")), row=5, col=1)
+        fig.add_hline(y=0, line=dict(color="#4a6080",width=1), row=5, col=1)
 
     fig.update_layout(
         paper_bgcolor="#03070f", plot_bgcolor="#070d1a",
-        font=dict(family="IBM Plex Mono", color="#b8cce0", size=10),
+        font=dict(family="Courier New", color="#cdd9e8", size=10),
         height=1100, margin=dict(l=8,r=8,t=60,b=8),
         legend=dict(orientation="h",y=1.03,bgcolor="rgba(0,0,0,0)",x=0),
         hovermode="x unified",
     )
-    fig.update_annotations(font=dict(color="#3a5070",size=10,family="IBM Plex Mono"))
+    fig.update_annotations(font=dict(color="#4a6080",size=10,family="Courier New"))
     for r in range(1,6):
-        fig.update_xaxes(gridcolor="#162040",showgrid=True,zeroline=False,row=r,col=1)
-        fig.update_yaxes(gridcolor="#162040",showgrid=True,zeroline=True,zerolinecolor="#3a5070",row=r,col=1)
+        fig.update_xaxes(gridcolor="#1a2a45",showgrid=True,zeroline=False,row=r,col=1)
+        fig.update_yaxes(gridcolor="#1a2a45",showgrid=True,zeroline=True,zerolinecolor="#4a6080",row=r,col=1)
     try:
         fig.update_yaxes(title_text="Price $",  row=1, col=1)
         fig.update_yaxes(title_text="P/E",      row=2, col=1)
@@ -909,46 +1016,46 @@ def fig_valuation_score_card(ticker):
         "Fwd P/E":      norm(fpe or 999, 80, 10, invert=True),
     }
     cats = list(scores.keys()); vals = list(scores.values())
-    colors = ["#00ff9d" if v>=70 else "#ffb800" if v>=40 else "#ff2d55" for v in vals]
+    colors = ["#00e676" if v>=70 else "#ffb800" if v>=40 else "#ff1744" for v in vals]
 
     fig = go.Figure(go.Bar(
         x=vals, y=cats, orientation="h",
         marker_color=colors,
         text=[f"{v:.0f}/100" for v in vals], textposition="outside",
-        textfont=dict(size=10, family="IBM Plex Mono", color="#b8cce0"),
+        textfont=dict(size=10, family="Courier New", color="#cdd9e8"),
     ))
-    fig.add_vline(x=70, line=dict(color="#00ff9d",width=1,dash="dash"))
+    fig.add_vline(x=70, line=dict(color="#00e676",width=1,dash="dash"))
     fig.add_vline(x=40, line=dict(color="#ffb800",width=1,dash="dash"))
     fig.update_layout(**base_layout(f"{ticker} — INSTITUTIONAL VALUATION SCORECARD", 380))
-    fig.update_xaxes(gridcolor="#162040", range=[0, 130])
-    fig.update_yaxes(gridcolor="#162040")
+    fig.update_xaxes(gridcolor="#1a2a45", range=[0, 130])
+    fig.update_yaxes(gridcolor="#1a2a45")
     return fig, scores
 
 
 def fig_ranking(df):
     df = df.sort_values("Score", ascending=True).tail(25)
-    colors = ["#00ff9d" if s>=70 else "#ffb800" if s>=50 else "#ff2d55" for s in df["Score"]]
+    colors = ["#00e676" if s>=70 else "#ffb800" if s>=50 else "#ff1744" for s in df["Score"]]
     fig = go.Figure(go.Bar(
         x=df["Score"], y=df["Ticker"], orientation="h", marker_color=colors,
         text=[f"{s:.0f}" for s in df["Score"]], textposition="outside",
-        textfont=dict(color="#b8cce0", size=10, family="IBM Plex Mono"),
+        textfont=dict(color="#cdd9e8", size=10, family="Courier New"),
     ))
     fig.update_layout(**base_layout("📊 LIVE STB RANKING SCORES", 520))
-    fig.update_xaxes(gridcolor="#162040", range=[0, 115])
-    fig.update_yaxes(gridcolor="#162040")
+    fig.update_xaxes(gridcolor="#1a2a45", range=[0, 115])
+    fig.update_yaxes(gridcolor="#1a2a45")
     return fig
 
 
 def fig_sector(data):
-    colors = ["#00ff9d" if v>0 else "#ff2d55" for v in data.values()]
+    colors = ["#00e676" if v>0 else "#ff1744" for v in data.values()]
     fig = go.Figure(go.Bar(
         x=list(data.keys()), y=list(data.values()), marker_color=colors,
         text=[f"{v:+.2f}%" for v in data.values()], textposition="outside",
-        textfont=dict(color="#b8cce0", size=10, family="IBM Plex Mono"),
+        textfont=dict(color="#cdd9e8", size=10, family="Courier New"),
     ))
     fig.update_layout(**base_layout("🏭 SECTOR PERFORMANCE (ETF)", 300))
-    fig.update_xaxes(gridcolor="#162040")
-    fig.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
+    fig.update_xaxes(gridcolor="#1a2a45")
+    fig.update_yaxes(gridcolor="#1a2a45", zeroline=True, zerolinecolor="#4a6080")
     return fig
 
 
@@ -963,13 +1070,13 @@ def fig_correlation(tickers):
     corr = df.corr()
     fig  = go.Figure(go.Heatmap(
         z=corr.values, x=corr.columns, y=corr.index,
-        colorscale=[[0,"#ff2d55"],[0.5,"#070d1a"],[1,"#00ff9d"]],
+        colorscale=[[0,"#ff1744"],[0.5,"#070d1a"],[1,"#00e676"]],
         text=[[f"{v:.2f}" for v in row] for row in corr.values],
-        texttemplate="%{text}", textfont=dict(size=9, family="IBM Plex Mono"),
+        texttemplate="%{text}", textfont=dict(size=9, family="Courier New"),
         zmin=-1, zmax=1,
     ))
     fig.update_layout(**base_layout("🔗 1Y RETURN CORRELATION MATRIX", 480))
-    fig.update_xaxes(gridcolor="#162040"); fig.update_yaxes(gridcolor="#162040")
+    fig.update_xaxes(gridcolor="#1a2a45"); fig.update_yaxes(gridcolor="#1a2a45")
     return fig
 
 
@@ -981,15 +1088,15 @@ def fig_pnl():
             pnls.append((r["ticker"], (p - r["buy"]) / r["buy"] * 100))
         else:
             pnls.append((r["ticker"], 0.0))
-    colors = ["#00ff9d" if v >= 0 else "#ff2d55" for _, v in pnls]
+    colors = ["#00e676" if v >= 0 else "#ff1744" for _, v in pnls]
     fig = go.Figure(go.Bar(
         x=[t for t,_ in pnls], y=[v for _,v in pnls], marker_color=colors,
         text=[f"{v:+.1f}%" for _,v in pnls], textposition="outside",
-        textfont=dict(color="#b8cce0", size=11, family="IBM Plex Mono"),
+        textfont=dict(color="#cdd9e8", size=11, family="Courier New"),
     ))
     fig.update_layout(**base_layout("💰 BONUS PORTFOLIO  P&L %", 320))
-    fig.update_xaxes(gridcolor="#162040")
-    fig.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
+    fig.update_xaxes(gridcolor="#1a2a45")
+    fig.update_yaxes(gridcolor="#1a2a45", zeroline=True, zerolinecolor="#4a6080")
     return fig
 
 
@@ -1003,16 +1110,16 @@ def fig_waterfall(ticker):
     fig  = go.Figure(go.Waterfall(
         x=yrs, y=vals,
         measure=["absolute"] + ["relative"]*(len(vals)-1),
-        increasing=dict(marker_color="#00ff9d"),
-        decreasing=dict(marker_color="#ff2d55"),
-        totals=dict(marker_color="#00e5ff"),
-        connector=dict(line=dict(color="#162040", width=1)),
+        increasing=dict(marker_color="#00e676"),
+        decreasing=dict(marker_color="#ff1744"),
+        totals=dict(marker_color="#00d4f5"),
+        connector=dict(line=dict(color="#1a2a45", width=1)),
         text=[f"${v:.1f}B" for v in vals],
-        textfont=dict(family="IBM Plex Mono", size=10, color="#b8cce0"),
+        textfont=dict(family="Courier New", size=10, color="#cdd9e8"),
     ))
     fig.update_layout(**base_layout(f"{ticker}  REVENUE WATERFALL ($B)", 360))
-    fig.update_xaxes(gridcolor="#162040", type="category")
-    fig.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
+    fig.update_xaxes(gridcolor="#1a2a45", type="category")
+    fig.update_yaxes(gridcolor="#1a2a45", zeroline=True, zerolinecolor="#4a6080")
     return fig
 
 
@@ -1025,7 +1132,7 @@ def main():
 
     now = datetime.now()
     mkt = now.weekday() < 5 and 9 <= now.hour < 16
-    mkt_html = '<span style="color:#00ff9d">● LIVE</span>' if mkt else '<span style="color:#3a5070">● CLOSED</span>'
+    mkt_html = '<span style="color:#00ff9d">● LIVE</span>' if mkt else '<span style="color:#4a6080">● CLOSED</span>'
 
     # ── HEADER ──
     st.markdown(f"""
@@ -1053,7 +1160,7 @@ def main():
             cls = "up" if (chg or 0)>0 else "down" if (chg or 0)<0 else "flat"
             arr = "▲" if (chg or 0)>0 else "▼"
             idx_html += (f'<div class="idx-i"><div class="idx-n">{name}</div>'
-                         f'<span style="color:#e8f2ff">{p:,.2f}</span> '
+                         f'<span style="color:#eaf2ff">{p:,.2f}</span> '
                          f'<span class="{cls}">{arr}{abs((chg or 0)*100):.2f}%</span></div>')
     idx_html += "</div>"
     st.markdown(idx_html, unsafe_allow_html=True)
@@ -1123,23 +1230,85 @@ def main():
 
         df = pd.DataFrame(rows)
         if sig_f != "All":
-            sig_clean = sig_f
-            df = df[df["Signal"].str.contains(sig_clean, na=False)]
+            df = df[df["Signal"].str.contains(sig_f, na=False)]
         if srt=="Score":      df = df.sort_values("Score",ascending=False)
         elif srt=="Change %": df = df.sort_values("Change %",ascending=False)
         elif srt=="P/E":      df = df.sort_values("P/E",ascending=True, na_position="last")
         elif srt=="P/S":      df = df.sort_values("P/S",ascending=True, na_position="last")
-        df = df.reset_index(drop=True); df.index += 1
+        df = df.reset_index(drop=True)
 
-        st.dataframe(df, use_container_width=True, height=580,
-            column_config={
-                "Score":    st.column_config.ProgressColumn("Score",min_value=0,max_value=100,format="%.0f"),
-                "Change %": st.column_config.NumberColumn("Chg %",format="%.2f%%"),
-                "Audit":    st.column_config.NumberColumn("Audit",format="%d"),
-                "P/E":      st.column_config.NumberColumn("P/E",format="%.1f"),
-                "P/S":      st.column_config.NumberColumn("P/S",format="%.2f"),
-                "Fwd P/E":  st.column_config.NumberColumn("Fwd P/E",format="%.1f"),
-            })
+        # ── Build custom HTML rankings table ──
+        def score_bar(sc):
+            sc = float(sc) if sc == sc else 0
+            clr = "#00e676" if sc>=70 else "#ffc400" if sc>=45 else "#ff1744"
+            return (f'<div class="score-bar-wrap">'
+                    f'<div class="score-bar-bg"><div class="score-bar-fill" style="width:{sc}%;background:{clr};"></div></div>'
+                    f'<span class="score-num" style="color:{clr}">{sc:.0f}</span></div>')
+
+        def sig_badge(s):
+            s = str(s)
+            if "STRONG BUY" in s: return f'<span class="sig-badge sig-sb">● STRONG BUY</span>'
+            if "BUY"        in s: return f'<span class="sig-badge sig-b">● BUY</span>'
+            if "HOLD"       in s: return f'<span class="sig-badge sig-h">● HOLD</span>'
+            return                       f'<span class="sig-badge sig-w">● WATCH</span>'
+
+        def chg_fmt(v):
+            try:
+                v = float(v)
+                cls = "chg-up" if v>0 else "chg-dn" if v<0 else "chg-fl"
+                arr = "▲" if v>0 else "▼" if v<0 else "—"
+                return f'<span class="{cls}">{arr}{abs(v):.2f}%</span>'
+            except: return '<span class="chg-fl">—</span>'
+
+        def audit_fmt(v):
+            try:
+                v = float(v)
+                if v != v: raise ValueError
+                cls = "audit-hi" if v>=80 else "audit-md" if v>=55 else "audit-lo"
+                return f'<span class="{cls}">{v:.0f}</span>'
+            except: return '<span class="audit-na">—</span>'
+
+        def num_fmt(v, dec=1):
+            try:
+                f = float(v)
+                return "—" if f!=f else f"{f:.{dec}f}"
+            except: return "—"
+
+        hdr = ("NUM","TICKER","NAME","PRICE","CHG %","SCORE","SIGNAL",
+               "P/E","FWD P/E","P/S","MCAP","REV GRW","EPS GRW","SECTOR","AUDIT")
+        th = "".join(f"<th>{h}</th>" for h in hdr)
+        rows_html = []
+        for i, row in df.iterrows():
+            rows_html.append(
+                f"<tr>"
+                f'<td class="rk-num">{i+1}</td>'
+                f'<td><span class="rk-ticker">{row["Ticker"]}</span></td>'
+                f'<td><span class="rk-name">{row["Name"]}</span></td>'
+                f'<td class="num">{row["Price"]}</td>'
+                f'<td class="num">{chg_fmt(row["Change %"])}</td>'
+                f'<td>{score_bar(row["Score"])}</td>'
+                f'<td>{sig_badge(row["Signal"])}</td>'
+                f'<td class="num">{num_fmt(row["P/E"],1)}</td>'
+                f'<td class="num">{num_fmt(row["Fwd P/E"],1)}</td>'
+                f'<td class="num">{num_fmt(row["P/S"],2)}</td>'
+                f'<td class="num">{row["Market Cap"]}</td>'
+                f'<td class="num" style="color:#00e676">{row["Rev Grw"]}</td>'
+                f'<td class="num" style="color:#00d4f5">{row["EPS Grw"]}</td>'
+                f'<td><span class="sect-tag">{row["Sector"]}</span></td>'
+                f'<td class="num">{audit_fmt(row["Audit"])}</td>'
+                f"</tr>"
+            )
+
+        tbl_html = f"""
+        <div style="overflow-x:auto;overflow-y:auto;max-height:600px;
+                    background:#070d1a;border:1px solid #1a2a45;border-radius:8px;">
+          <table class="rank-tbl">
+            <thead><tr>{th}</tr></thead>
+            <tbody>{"".join(rows_html)}</tbody>
+          </table>
+        </div>"""
+        st.markdown(tbl_html, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
         dfc = df[["Ticker","Score"]].copy()
         dfc["Score"] = pd.to_numeric(dfc["Score"],errors="coerce").fillna(0)
@@ -1190,7 +1359,7 @@ def main():
 
         if "OVERLAY" in vmode:
             st.markdown(
-                '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:#3a5070;margin-bottom:8px;">'
+                '<div style="font-family:Courier New,monospace;font-size:10px;color:#4a6080;margin-bottom:8px;">'
                 'Panel 1: Daily stock price (continuous line) + annual year-end price markers &nbsp;|&nbsp; '
                 'Panel 2: P/E ratio per year &nbsp;|&nbsp; Panel 3: P/S ratio per year &nbsp;|&nbsp; '
                 'Panel 4: Revenue Growth % YoY &nbsp;|&nbsp; Panel 5: EPS Growth % YoY — '
@@ -1201,7 +1370,7 @@ def main():
 
         elif "Full Financial" in vmode:
             st.markdown(
-                '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:#3a5070;margin-bottom:6px;">'
+                '<div style="font-family:Courier New,monospace;font-size:10px;color:#4a6080;margin-bottom:6px;">'
                 'Panel 1: Revenue · EBITDA · FCF ($B) + Year-End Price &nbsp;|&nbsp; '
                 'Panel 2: P/E & P/S &nbsp;|&nbsp; Panel 3: EPS + EPS Growth &nbsp;|&nbsp; Panel 4: Revenue Growth %</div>',
                 unsafe_allow_html=True)
@@ -1251,12 +1420,12 @@ def main():
                 fig_sc, scores = fig_valuation_score_card(ct)
             st.plotly_chart(fig_sc, use_container_width=True)
             overall = sum(scores.values()) / len(scores)
-            col_v = "#00ff9d" if overall>=70 else "#ffb800" if overall>=45 else "#ff2d55"
+            col_v = "#00e676" if overall>=70 else "#ffb800" if overall>=45 else "#ff1744"
             st.markdown(f"""
             <div class="ab" style="margin-top:8px;border-color:{col_v};">
-              <div style="font-family:Bebas Neue,monospace;font-size:18px;color:{col_v};margin-bottom:6px;">
+              <div style="font-family:Arial Black,Arial,sans-serif;font-size:18px;color:{col_v};margin-bottom:6px;">
                 INSTITUTIONAL VALUATION SCORE: {overall:.0f}/100</div>
-              <div style="font-size:10px;color:#3a5070;font-family:IBM Plex Mono,monospace;">
+              <div style="font-size:10px;color:#4a6080;font-family:Courier New,monospace;">
               Scoring methodology: Rev Growth (30pt) · EPS Growth (20pt) · FCF (10pt) ·
               Net Debt (10pt) · P/E attractiveness (15pt) · P/S attractiveness (15pt)</div>
             </div>""", unsafe_allow_html=True)
@@ -1309,17 +1478,17 @@ def main():
                 score = res.get("score", 0)
                 pr    = res.get("price") or 0
                 chg_a = res.get("change") or 0
-                col   = "#00ff9d" if score>=80 else "#ffb800" if score>=60 else "#ff2d55"
-                cclr  = "#00ff9d" if chg_a>=0 else "#ff2d55"
+                col   = "#00e676" if score>=80 else "#ffb800" if score>=60 else "#ff1744"
+                cclr  = "#00e676" if chg_a>=0 else "#ff1744"
                 st.markdown(f"""
                 <div style="background:#0b1220;border:1px solid {col};border-radius:8px;padding:14px;margin-top:10px;">
-                  <div style="font-family:Bebas Neue,monospace;font-size:26px;color:{col};">{audit_t}</div>
-                  <div style="font-family:IBM Plex Mono,monospace;font-size:15px;color:#e8f2ff;">
+                  <div style="font-family:Arial Black,Arial,sans-serif;font-size:26px;color:{col};">{audit_t}</div>
+                  <div style="font-family:Courier New,monospace;font-size:15px;color:#eaf2ff;">
                     ${pr:.2f} <span style="color:{cclr}">{chg_a*100:+.2f}%</span></div>
-                  <div style="font-size:9px;color:#3a5070;letter-spacing:2px;margin-top:8px;">AUDIT SCORE</div>
-                  <div style="font-family:Bebas Neue,monospace;font-size:48px;color:{col};line-height:1;">
-                    {score}<span style="font-size:16px;color:#3a5070">/100</span></div>
-                  <div style="font-size:9px;color:#3a5070;margin-top:2px;">Updated: {res.get('ts','—')}</div>
+                  <div style="font-size:9px;color:#4a6080;letter-spacing:2px;margin-top:8px;">AUDIT SCORE</div>
+                  <div style="font-family:Arial Black,Arial,sans-serif;font-size:48px;color:{col};line-height:1;">
+                    {score}<span style="font-size:16px;color:#4a6080">/100</span></div>
+                  <div style="font-size:9px;color:#4a6080;margin-top:2px;">Updated: {res.get('ts','—')}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1339,7 +1508,7 @@ def main():
                 for nm, st_txt in algo_rows:
                     ok   = "✅" in st_txt
                     warn = "⚠️" in st_txt or "📉" in st_txt
-                    clr  = "#00ff9d" if ok else "#ffb800" if warn else "#ff2d55" if "🚨" in st_txt else "#3a5070"
+                    clr  = "#00e676" if ok else "#ffb800" if warn else "#ff1744" if "🚨" in st_txt else "#4a6080"
                     html += (f'<div class="ar"><span class="an">{nm}</span>'
                              f'<span style="color:{clr}">{st_txt}</span></div>')
                 html += "</div>"
@@ -1354,7 +1523,7 @@ def main():
                 if ch:
                     with st.expander("🏆 Hypothesis Checks"):
                         for c in ch:
-                            clr = "#00ff9d" if "✅" in c["status"] else "#ffb800"
+                            clr = "#00e676" if "✅" in c["status"] else "#ffb800"
                             st.markdown(
                                 f'<div class="ar"><span class="an">{c["name"]}</span>'
                                 f'<span>Fair: <b>${c["fair"]}</b> · Live: <b>${c["live"]}</b> · '
@@ -1512,7 +1681,7 @@ def main():
                 if len(cmp_tickers) >= 2:
                     fig_cmp = go.Figure()
                     metrics_to_plot = ["Score","P/E","P/S","Gross Mgn","Rev Grw","EPS Grw"]
-                    colors_list = ["#00e5ff","#00ff9d","#ffb800","#ff2d55","#9d4edd","#ffffff"]
+                    colors_list = ["#00d4f5","#00e676","#ffb800","#ff1744","#9d4edd","#ffffff"]
                     for tk, clr in zip(cmp_tickers, colors_list):
                         row = next((r for r in cmp_rows if r["Ticker"]==tk), {})
                         def safe_float(v):
@@ -1530,14 +1699,14 @@ def main():
                         ))
                     fig_cmp.update_layout(
                         paper_bgcolor="#03070f", plot_bgcolor="#070d1a",
-                        font=dict(family="IBM Plex Mono", color="#b8cce0", size=10),
-                        title=dict(text="COMPARATIVE KEY METRICS", font=dict(color="#00e5ff",size=13)),
+                        font=dict(family="Courier New", color="#cdd9e8", size=10),
+                        title=dict(text="COMPARATIVE KEY METRICS", font=dict(color="#00d4f5",size=13)),
                         height=380, barmode="group",
                         legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
                         margin=dict(l=8,r=8,t=60,b=8),
                     )
-                    fig_cmp.update_xaxes(gridcolor="#162040")
-                    fig_cmp.update_yaxes(gridcolor="#162040", zeroline=True, zerolinecolor="#3a5070")
+                    fig_cmp.update_xaxes(gridcolor="#1a2a45")
+                    fig_cmp.update_yaxes(gridcolor="#1a2a45", zeroline=True, zerolinecolor="#4a6080")
                     st.plotly_chart(fig_cmp, use_container_width=True)
 
         with ins2:
@@ -1552,14 +1721,14 @@ def main():
                     sig_v     = signal(sc, chg)
                     inc, cf, bal, hist = get_all_financials(dive_t)
 
-                score_color = "#00ff9d" if sc>=70 else "#ffb800" if sc>=45 else "#ff2d55"
+                score_color = "#00e676" if sc>=70 else "#ffb800" if sc>=45 else "#ff1744"
 
                 st.markdown(f"""
                 <div style="background:#0b1220;border:1px solid {score_color};border-radius:8px;padding:16px;margin-bottom:10px;">
-                  <div style="font-family:Bebas Neue,monospace;font-size:28px;color:{score_color};">{dive_t}</div>
-                  <div style="font-size:11px;color:#3a5070;font-family:IBM Plex Mono;">{TICKER_META.get(dive_t,"")}</div>
-                  <div style="font-family:IBM Plex Mono;font-size:18px;color:#e8f2ff;margin-top:6px;">
-                    ${p:.2f} <span style="color:{'#00ff9d' if (chg or 0)>=0 else '#ff2d55'}">{fmt_pct(chg,False)}</span>
+                  <div style="font-family:Arial Black,Arial,sans-serif;font-size:28px;color:{score_color};">{dive_t}</div>
+                  <div style="font-size:11px;color:#4a6080;font-family:Courier New,monospace;">{TICKER_META.get(dive_t,"")}</div>
+                  <div style="font-family:Courier New,monospace;font-size:18px;color:#eaf2ff;margin-top:6px;">
+                    ${p:.2f} <span style="color:{'#00e676' if (chg or 0)>=0 else '#ff1744'}">{fmt_pct(chg,False)}</span>
                     &nbsp;&nbsp; SCORE: <span style="color:{score_color}">{sc:.0f}/100</span>
                     &nbsp;&nbsp; {sig_v}</div>
                 </div>
@@ -1588,7 +1757,7 @@ def main():
                 for lbl, val in metrics_grid:
                     grid_html += (f'<div class="ab" style="padding:6px 10px;">'
                                   f'<div class="cl">{lbl}</div>'
-                                  f'<div style="font-family:IBM Plex Mono,monospace;font-size:13px;color:#e8f2ff;">{val}</div></div>')
+                                  f'<div style="font-family:Courier New,monospace;font-size:13px;color:#eaf2ff;">{val}</div></div>')
                 grid_html += '</div>'
                 st.markdown(grid_html, unsafe_allow_html=True)
 
@@ -1596,15 +1765,15 @@ def main():
                 target = info.get("targetMeanPrice")
                 if target and p:
                     upside = (target - p) / p * 100
-                    t_clr = "#00ff9d" if upside > 0 else "#ff2d55"
+                    t_clr = "#00e676" if upside > 0 else "#ff1744"
                     st.markdown(f"""
                     <div class="ab" style="margin-bottom:8px;">
                       <div class="cl">ANALYST CONSENSUS TARGET</div>
-                      <div style="font-family:IBM Plex Mono;font-size:16px;color:#e8f2ff;">
+                      <div style="font-family:Courier New,monospace;font-size:16px;color:#eaf2ff;">
                         ${target:.2f} &nbsp;
                         <span style="color:{t_clr}">{upside:+.1f}% {'UPSIDE' if upside>0 else 'DOWNSIDE'}</span>
                       </div>
-                      <div style="font-size:10px;color:#3a5070;margin-top:2px;">
+                      <div style="font-size:10px;color:#4a6080;margin-top:2px;">
                         Low: ${info.get('targetLowPrice',0):.2f} &nbsp;|&nbsp;
                         High: ${info.get('targetHighPrice',0):.2f} &nbsp;|&nbsp;
                         Rec: {info.get('recommendationKey','—').upper()}
@@ -1634,17 +1803,17 @@ def main():
                 p, chg, _ = get_price(tk)
                 info = get_info(tk)
                 if p:
-                    cclr = "#00ff9d" if (chg or 0)>0 else "#ff2d55"
+                    cclr = "#00e676" if (chg or 0)>0 else "#ff1744"
                     st.markdown(f"""
                     <div class="ab" style="margin-top:8px;">
-                      <div style="font-family:Bebas Neue,monospace;font-size:26px;color:#00e5ff;">{tk}</div>
-                      <div style="font-family:IBM Plex Mono,monospace;font-size:15px;color:#e8f2ff;">
+                      <div style="font-family:Arial Black,Arial,sans-serif;font-size:26px;color:#00d4f5;">{tk}</div>
+                      <div style="font-family:Courier New,monospace;font-size:15px;color:#eaf2ff;">
                         ${p:.4f} <span style="color:{cclr}">{fmt_pct(chg,False)}</span></div>
-                      <div style="font-size:11px;color:#3a5070;margin-top:6px;">
+                      <div style="font-size:11px;color:#4a6080;margin-top:6px;">
                         P/E: {info.get('trailingPE','—')} &nbsp;|&nbsp;
                         P/S: {info.get('priceToSalesTrailing12Months','—')} &nbsp;|&nbsp;
                         MCap: {fmt_mcap(info.get('marketCap'))}</div>
-                      <div style="font-size:11px;color:#3a5070;">
+                      <div style="font-size:11px;color:#4a6080;">
                         Rev Growth: {fmt_pct(info.get('revenueGrowth'))} &nbsp;|&nbsp;
                         EPS: ${info.get('trailingEps','—')}</div>
                     </div>
@@ -1709,7 +1878,7 @@ def main():
 
     # ── FOOTER ──
     st.markdown(f"""
-    <div style="text-align:center;font-family:IBM Plex Mono,monospace;font-size:9px;
+    <div style="text-align:center;font-family:Courier New,monospace;font-size:9px;
     color:#162040;letter-spacing:3px;padding:10px 0 4px;border-top:1px solid #162040;margin-top:10px;">
       PYKUPZ ANALYTICS TERMINAL · MARKET INTELLIGENCE · {len(MASTER_UNIVERSE)} TICKERS · YAHOO FINANCE ·
       AUTO-REFRESH 60s · {now.strftime("%Y-%m-%d %H:%M:%S")} · NOT FINANCIAL ADVICE
